@@ -1,5 +1,5 @@
 {
-    "name": "lfgamers/symforium-core",
+    "name": "symforium/symforium-core",
     "description": "Core for the Symforium project",
     "license": "Apache-2.0",
     "require":           {
@@ -26,7 +26,7 @@
     },
     "autoload":          {
         "psr-4": {
-            "Symfonium\\Core\\": "src/"
+            "Symforium\\Core\\": "src/"
         }
     },
     "authors": [
