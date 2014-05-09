@@ -1,11 +1,11 @@
-imports:
-    - { resource: parameters.yml }
-    - { resource: security.yml }
+#imports:
+#    - { resource: parameters.yml }
+#    - { resource: security.yml }
 
 framework:
     secret:          "%secret%"
     router:
-        resource: "%kernel.root_dir%/config/routing.yml"
+        resource: "%symforium.core_dir%/Application/config/routing.yml"
     validation:      { enable_annotations: true }
     templating:
         engines: ['twig']

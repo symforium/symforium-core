@@ -24,7 +24,6 @@ class SymforiumCoreExtension extends Extension
      */
     public function load(array $config, ContainerBuilder $container)
     {
-
     }
 }
  

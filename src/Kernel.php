@@ -27,7 +27,6 @@ use Knp\Bundle\MenuBundle\KnpMenuBundle;
  */
 abstract class Kernel extends SymfonyKernel
 {
-
     /**
      * Constructor.
      *
@@ -37,6 +36,14 @@ abstract class Kernel extends SymfonyKernel
     {
         $this->rootDir = $this->getRootDir();
         $this->name = $this->getName();
+    }
+
+    protected function getKernelParameters()
+    {
+        return array_merge(
+            parent::getKernelParameters(),
+            array('symforium.core_dir' => realpath(__DIR__))
+        );
     }
 
     /**
@@ -67,7 +74,7 @@ abstract class Kernel extends SymfonyKernel
             new SensioFrameworkExtraBundle(),
             new WhiteOctoberBreadcrumbsBundle(),
             //new KnpMenuBundle(),
-            new AequasiCacheBundle(),
+            //new AequasiCacheBundle(),
             new Bundle\CoreBundle\SymforiumCoreBundle(),
         ];
 

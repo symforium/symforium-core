@@ -1,0 +1,11 @@
+{
+    "require": {
+        "bldr-io/frontend-block": "dev-master"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "http://github.com/bldr-io/frontend-block"
+        }
+    ]
+}

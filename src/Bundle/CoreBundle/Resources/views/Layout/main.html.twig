@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Symforium</title>
+        {% block jquery %}
+            <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+        {% endblock %}
+        {% block javascripts %}
+            <script src="/bundles/symforiumcore/js/vendor.min.js"></script>
+        {% endblock %}
+        {% block stylesheets %}
+            <link rel="stylesheet" type="text/css" media="all" href="/bundles/symforiumcore/css/main.css" />
+            <link rel="stylesheet" type="text/css" media="all" href="/bundles/symforiumcore/css/vendor.min.css" />
+        {% endblock %}
+    </head>
+    <body>
+        {% block body %}
+
+            {% block navigation %}
+                <div id="main-nav">
+                    <div class="container">
+                        <nav class="pull-left">
+                            <ul>
+                                <li>Home</li>
+                                <li>Static 1</li>
+                                <li>Static 2</li>
+                            </ul>
+                        </nav>
+                        <nav class="pull-right">
+                            <ul>
+                                <li>Register</li>
+                                <li>Sign In</li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            {% endblock %}
+
+            <section id="content">
+                <div class="container">
+                    {% block content %}
+                    {% endblock %}
+                </div>
+            </section>
+
+        {% endblock %}
+    </body>
+</html>

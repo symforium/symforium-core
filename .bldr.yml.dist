@@ -1,0 +1,143 @@
+blocks:
+    - Bldr\Block\Frontend\FrontendBlock
+
+bldr:
+    name: symforium/symforium-core
+    description: Symforium Core Project
+    profiles:
+        assets:
+            description: Compile Assets
+            tasks:
+                - destroyBuild
+                - compileLess
+                #- compileCoffee
+                - minifyCss
+                - minifyJs
+                - copyAssets
+                - destroyBuild
+        watchAssets:
+            description: Profile for watching assets
+            tasks:
+                - destroyBuild
+                - compileLess
+                #- compileCoffee
+                - minifyCss
+                - minifyJs
+                - copyAssets
+                - destroyBuild
+                - watchAssets
+
+
+    tasks:
+        destroyBuild:
+            calls:
+                -
+                    type: filesystem:remove
+                    files: [src/Bundle/CoreBundle/Resources/private/build]
+        compileLess:
+            calls:
+                -
+                    type: less
+                    failOnError: false
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/less/, files: main.less }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/css/main.css
+        compileCoffee:
+            calls:
+                -
+                    type: coffee
+                    failOnError: false
+                    src:
+                        - { path: src/Resources/private/coffee/, files: main.coffee }
+                        - { path: src/Resources/private/coffee/dvd, files: *.coffee, recursive: true }
+                    dest: src/Resources/private/build/js/main.js
+        minifyCss:
+            calls:
+                -
+                    type: minify:css
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/build/css/, files: main.css }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/css/main.min.css
+                -
+                    type: concat
+                    src:
+                        -
+                            path: src/Bundle/CoreBundle/Resources/private/css/
+                            files:
+                                - bootstrap.css
+                                - font-awesome.css
+                    dest: src/Bundle/CoreBundle/Resources/private/build/css/vendor.css
+                -
+                    type: minify:css
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/build/css/, files: vendor.css }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/css/vendor.min.css
+        minifyJs:
+            calls:
+                #-
+                #    type: minify:js
+                #    failOnError: false
+                #    src:
+                #        - { path: src/Bundle/CoreBundle/Resources/private/build/js/, files: js.css }
+                #    dest: src/Bundle/CoreBundle/Resources/private/build/js/main.min.js
+                -
+                    type: concat
+                    src:
+                        -
+                            path: src/Bundle/CoreBundle/Resources/private/js/
+                            files:
+                                - bootstrap.js
+                    dest: src/Bundle/CoreBundle/Resources/private/build/js/vendor.js
+                -
+                    type: minify:js
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/build/js/, files: vendor.js }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/js/vendor.min.js
+
+        copyAssets:
+            description: Copies assets from src/Bundle/CoreBundle/Resources/private/build/ and src/Bundle/CoreBundle/Resource/private/fonts/ to src/Bundle/CoreBundle/Resources/public
+            calls:
+                -
+                    type: filesystem:remove
+                    files: [src/Bundle/CoreBundle/Resources/public]
+                -
+                    type: filesystem:mkdir
+                    files: [src/Bundle/CoreBundle/Resources/public]
+                -
+                    type: exec
+                    executable: cp
+                    arguments:
+                        - -r
+                        - src/Bundle/CoreBundle/Resources/private/build/js
+                        - src/Bundle/CoreBundle/Resources/public/
+                -
+                    type: exec
+                    executable: cp
+                    arguments:
+                        - -r
+                        - src/Bundle/CoreBundle/Resources/private/build/css
+                        - src/Bundle/CoreBundle/Resources/public/
+                -
+                    type: exec
+                    executable: cp
+                    arguments:
+                        - -r
+                        - src/Bundle/CoreBundle/Resources/private/fonts
+                        - src/Bundle/CoreBundle/Resources/public/
+                #-
+                #    type: exec
+                #    executable: cp
+                #    arguments:
+                #        - -r
+                #        - src/Bundle/CoreBundle/Resources/private/images
+                #        - src/Bundle/CoreBundle/Resources/public/
+
+        watchAssets:
+            description: Watches for changes in the src/Bundle/CoreBundle/Resources/private directory
+            calls:
+                -
+                    type: watch
+                    failOnError: false
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/, files: [*], recursive: true }
+                    profile: assets
