@@ -18,7 +18,8 @@
         "knplabs/knp-menu-bundle":              "~1.1.0",
         "knplabs/knp-menu":                     "~1.1.0",
         "aequasi/environment":                  "~0.3.0",
-        "aequasi/cache-bundle":                 "~2.2.0"
+        "aequasi/cache-bundle":                 "~2.2.0",
+        "friendsofsymfony/user-bundle":         "~2.0.0@dev"
     },
     "require-dev":       {
         "phpunit/phpunit":             "4.0.*",
