@@ -12,6 +12,7 @@
 namespace Symforium\Core;
 
 use Aequasi\Environment\Environment;
+use Craue\FormFlowBundle\CraueFormFlowBundle;
 use FOS\UserBundle\FOSUserBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpKernel\Kernel as SymfonyKernel;
@@ -75,6 +76,7 @@ abstract class Kernel extends SymfonyKernel
             new SensioFrameworkExtraBundle(),
             new WhiteOctoberBreadcrumbsBundle(),
             new FOSUserBundle(),
+            new CraueFormFlowBundle(),
             //new KnpMenuBundle(),
             //new AequasiCacheBundle(),
             new Bundle\CoreBundle\SymforiumCoreBundle(),
@@ -84,6 +86,7 @@ abstract class Kernel extends SymfonyKernel
         if (in_array($this->getEnvironment(), ['dev', 'test'])) {
             $bundles[] = new SymfonyBundle\WebProfilerBundle\WebProfilerBundle();
             $bundles[] = new SensioBundle\DistributionBundle\SensioDistributionBundle();
+            $bundles[] = new SensioBundle\GeneratorBundle\SensioGeneratorBundle();
         }
 
         $bundles = array_merge($bundles, $this->registerSymforiumBundles());
