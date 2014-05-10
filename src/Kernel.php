@@ -16,7 +16,6 @@ use Craue\FormFlowBundle\CraueFormFlowBundle;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use FOS\UserBundle\FOSUserBundle;
 use Sensio\Bundle as SensioBundle;
-use Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle;
 use Symfony\Bundle as SymfonyBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpKernel\Kernel as SymfonyKernel;
@@ -71,7 +70,7 @@ abstract class Kernel extends SymfonyKernel
             new SymfonyBundle\MonologBundle\MonologBundle(),
             new SymfonyBundle\SwiftmailerBundle\SwiftmailerBundle(),
             new DoctrineBundle(),
-            new SensioFrameworkExtraBundle(),
+            new SensioBundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
             new WhiteOctoberBreadcrumbsBundle(),
             new FOSUserBundle(),
             new CraueFormFlowBundle(),
@@ -84,7 +83,6 @@ abstract class Kernel extends SymfonyKernel
         if (in_array($this->getEnvironment(), ['dev', 'test'])) {
             $bundles[] = new SymfonyBundle\WebProfilerBundle\WebProfilerBundle();
             $bundles[] = new SensioBundle\DistributionBundle\SensioDistributionBundle();
-
             if (class_exists('Sensio\Bundle\GeneratorBundle\SensioGeneratorBundle')) {
                 $bundles[] = new SensioBundle\GeneratorBundle\SensioGeneratorBundle();
             }
