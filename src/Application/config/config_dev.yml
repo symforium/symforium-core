@@ -1,0 +1,11 @@
+imports:
+    - { resource: config.yml }
+
+framework:
+    profiler: { only_exceptions: false }
+    router:
+        resource: "%symforium.core_dir%/Application/config/routing_dev.yml"
+
+web_profiler:
+    toolbar: true
+    intercept_redirects: false

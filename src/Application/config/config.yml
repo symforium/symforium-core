@@ -1,6 +1,6 @@
-#imports:
+imports:
+    - { resource: security.yml }
 #    - { resource: parameters.yml }
-#    - { resource: security.yml }
 
 framework:
     secret:          "%secret%"
@@ -11,8 +11,10 @@ framework:
         engines: ['twig']
     default_locale:  "%locale%"
     http_method_override: true
+    translator: ~
     session: ~
     form: ~
+    csrf_protection: ~
 
 # Twig Configuration
 twig:
@@ -31,6 +33,23 @@ doctrine:
                 user:     "%database_user%"
                 password: "%database_password%"
                 charset:  UTF8
+    orm:
+        auto_generate_proxy_classes: "%kernel.debug%"
+        entity_managers:
+            default:
+                auto_mapping: true
+                connection: default
+
+monolog:
+    handlers:
+        main:
+            type:   stream
+            path:   "%kernel.logs_dir%/%kernel.environment%.log"
+            level:  debug
+        console:
+            type:   console
+            bubble: false
+
 
 # Swiftmailer Configuration
 swiftmailer:
@@ -42,6 +61,11 @@ swiftmailer:
 
 white_october_breadcrumbs:
     separator: '>'
+
+fos_user:
+    db_driver: orm # other valid values are 'mongodb', 'couchdb' and 'propel'
+    firewall_name: main
+    user_class: Symforium\Core\Bundle\CoreBundle\Entity\User
 
 #knp_menu:
 #    twig:

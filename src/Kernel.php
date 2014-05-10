@@ -12,6 +12,7 @@
 namespace Symforium\Core;
 
 use Aequasi\Environment\Environment;
+use FOS\UserBundle\FOSUserBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpKernel\Kernel as SymfonyKernel;
 use Aequasi\Bundle\CacheBundle\AequasiCacheBundle;
@@ -73,9 +74,11 @@ abstract class Kernel extends SymfonyKernel
             new DoctrineBundle(),
             new SensioFrameworkExtraBundle(),
             new WhiteOctoberBreadcrumbsBundle(),
+            new FOSUserBundle(),
             //new KnpMenuBundle(),
             //new AequasiCacheBundle(),
             new Bundle\CoreBundle\SymforiumCoreBundle(),
+            new Bundle\UserBundle\SymforiumUserBundle(),
         ];
 
         if (in_array($this->getEnvironment(), ['dev', 'test'])) {
@@ -101,7 +104,7 @@ abstract class Kernel extends SymfonyKernel
      */
     final public function registerContainerConfiguration(LoaderInterface $loader)
     {
-        $loader->load(__DIR__.'/Application/config/config.yml');
+        $loader->load(__DIR__.'/Application/config/config_'.$this->environment.'.yml');
         $this->registerSymforiumConfiguration($loader);
     }
 

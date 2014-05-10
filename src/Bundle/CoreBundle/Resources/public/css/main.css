@@ -2,6 +2,13 @@
   height: 50px;
   border-bottom: 1px solid #CCC;
 }
+#main-nav nav a {
+  color: #222222;
+}
+#main-nav nav a:hover {
+  color: #999999;
+  text-decoration: none;
+}
 #main-nav nav ul {
   padding: 0;
   list-style: none;
