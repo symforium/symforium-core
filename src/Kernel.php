@@ -12,16 +12,15 @@
 namespace Symforium\Core;
 
 use Aequasi\Environment\Environment;
-use FOS\UserBundle\FOSUserBundle;
-use Symfony\Component\Config\Loader\LoaderInterface;
-use Symfony\Component\HttpKernel\Kernel as SymfonyKernel;
-use Aequasi\Bundle\CacheBundle\AequasiCacheBundle;
+use Craue\FormFlowBundle\CraueFormFlowBundle;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use FOS\UserBundle\FOSUserBundle;
+use Sensio\Bundle as SensioBundle;
 use Sensio\Bundle\FrameworkExtraBundle\SensioFrameworkExtraBundle;
 use Symfony\Bundle as SymfonyBundle;
-use Sensio\Bundle as SensioBundle;
+use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\HttpKernel\Kernel as SymfonyKernel;
 use WhiteOctober\BreadcrumbsBundle\WhiteOctoberBreadcrumbsBundle;
-use Knp\Bundle\MenuBundle\KnpMenuBundle;
 
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
@@ -36,7 +35,7 @@ abstract class Kernel extends SymfonyKernel
     final public function __construct()
     {
         $this->rootDir = $this->getRootDir();
-        $this->name = $this->getName();
+        $this->name    = $this->getName();
     }
 
     protected function getKernelParameters()
@@ -53,7 +52,7 @@ abstract class Kernel extends SymfonyKernel
     final public function initialize(Environment $environment)
     {
         $this->environment = $environment->getType();
-        $this->debug = $environment->isDebug();
+        $this->debug       = $environment->isDebug();
 
         if ($this->debug) {
             $this->startTime = microtime(true);
@@ -75,6 +74,7 @@ abstract class Kernel extends SymfonyKernel
             new SensioFrameworkExtraBundle(),
             new WhiteOctoberBreadcrumbsBundle(),
             new FOSUserBundle(),
+            new CraueFormFlowBundle(),
             //new KnpMenuBundle(),
             //new AequasiCacheBundle(),
             new Bundle\CoreBundle\SymforiumCoreBundle(),
@@ -84,6 +84,10 @@ abstract class Kernel extends SymfonyKernel
         if (in_array($this->getEnvironment(), ['dev', 'test'])) {
             $bundles[] = new SymfonyBundle\WebProfilerBundle\WebProfilerBundle();
             $bundles[] = new SensioBundle\DistributionBundle\SensioDistributionBundle();
+
+            if (class_exists('Sensio\Bundle\GeneratorBundle\SensioGeneratorBundle')) {
+                $bundles[] = new SensioBundle\GeneratorBundle\SensioGeneratorBundle();
+            }
         }
 
         $bundles = array_merge($bundles, $this->registerSymforiumBundles());
