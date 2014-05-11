@@ -2,13 +2,10 @@
 
 namespace Symforium\Core\Bundle\InstallerBundle\Controller;
 
-use Doctrine\DBAL\Configuration;
-use Doctrine\DBAL\DriverManager;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration as Config;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Yaml\Yaml;
-use Symforium\Core\Bundle\InstallerBundle\Form\InstallerForm;
 
 class InstallerController extends Controller
 {
@@ -31,6 +28,10 @@ class InstallerController extends Controller
      */
     public function stepOneAction(Request $request)
     {
+        if ($this->isConfigurationSet()) {
+            return $this->forward('SymforiumInstallerBundle:Installer:error');
+        }
+
         $form = $this->createForm('installer_step_one', $request->query->get('installer_step_one'));
 
         if ($request->isMethod('POST')) {
@@ -54,6 +55,10 @@ class InstallerController extends Controller
      */
     public function stepTwoAction(Request $request)
     {
+        if ($this->isConfigurationSet()) {
+            return $this->forward('SymforiumInstallerBundle:Installer:error');
+        }
+
         $form = $this->createForm('installer_step_two', $request->query->get('installer_step_two'));
 
         if ($request->isMethod('POST')) {
@@ -77,6 +82,10 @@ class InstallerController extends Controller
      */
     public function stepThreeAction(Request $request)
     {
+        if ($this->isConfigurationSet()) {
+            return $this->forward('SymforiumInstallerBundle:Installer:error');
+        }
+
         $form = $this->createForm('installer_step_three', $request->query->get('installer_step_three'));
 
         if ($request->isMethod('POST')) {
@@ -94,13 +103,18 @@ class InstallerController extends Controller
         return ['form' => $form->createView(), 'errors' => isset($errors) ? $errors : []];
     }
 
-
     /**
      * @Config\Route("/step/4", name="symforium_installer_step_four")
      * @Config\Template()
      */
     public function stepFourAction()
     {
+        if ($this->isConfigurationSet()) {
+            return $this->forward('SymforiumInstallerBundle:Installer:error');
+        }
+
+        $this->saveParameters([], true);
+
         return ['url' => $this->generateUrl('symforium_core_core_index_index')];
     }
 
@@ -114,17 +128,18 @@ class InstallerController extends Controller
 
     /**
      * @param array $data
+     * @param bool  $finished
      */
-    private function saveParameters(array $data)
+    private function saveParameters(array $data = [], $finished = false)
     {
-        $file = $this->container->getParameter('kernel.root_dir').'/config/parameters.yml';
+        $file       = $this->container->getParameter('kernel.root_dir').'/config/parameters.yml';
         $parameters = file_exists($file) ? Yaml::parse($file)['parameters'] : [];
 
         if (isset($data['forumName'])) {
             $parameters['forum_name'] = $data['forumName'];
         }
         if (isset($data['mysqlHost'])) {
-            $mysqlHost  = explode(':', $data['mysqlHost']);
+            $mysqlHost                   = explode(':', $data['mysqlHost']);
             $parameters['database_host'] = $mysqlHost[0];
             $parameters['database_port'] = isset($mysqlHost[1]) ? $mysqlHost[1] : 3306;
         }
@@ -136,6 +151,9 @@ class InstallerController extends Controller
         }
         if (isset($data['mysqlPassword'])) {
             $parameters['database_password'] = $data['mysqlPassword'];
+        }
+        if ($finished) {
+            $parameters['installed'] = true;
         }
 
         file_put_contents($file, Yaml::dump(['parameters' => $parameters], 4, 8));
@@ -168,7 +186,7 @@ class InstallerController extends Controller
      */
     private function isConfigurationSet()
     {
-        $file       = $this->container->getParameter('kernel.root_dir').'/config/parameters.yml';
+        $file = $this->container->getParameter('kernel.root_dir').'/config/parameters.yml';
         if (!file_exists($file)) {
             return false;
         }
@@ -178,7 +196,7 @@ class InstallerController extends Controller
             return false;
         }
 
-        if (!isset($parameters['installed']) || $parameters['installed'] === false) {
+        if (!isset($parameters['parameters']['installed']) || $parameters['parameters']['installed'] === false) {
             return false;
         }
 
