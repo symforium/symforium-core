@@ -1,115 +1,21 @@
 {% trans_default_domain "symforium" %}
-{% extends 'SymforiumCoreBundle:Layout:main.html.twig' %}
-
-{% block menu %}{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
-
-    <style type="text/css">
-        #logo a:after {
-            content: ' - Installer';
-            font-size: 70%;
-            top: -1px;
-            position: relative;
-        }
-
-        form div.section {
-            border-bottom: 1px solid #5bc0de;
-            padding: 15px;
-        }
-
-        form div.section:first-child {
-            border-top: 1px solid #5bc0de;
-        }
-
-        form div.section:last-child {
-            border-bottom: none;
-        }
-
-        #disclaimer {
-            padding-top: 8px;
-            text-align: center;
-        }
-    </style>
-{% endblock %}
+{% extends 'SymforiumInstallerBundle:Installer:installer.html.twig' %}
 
 {% block content %}
-    {{ form_start(form, {'attr': {'role': 'form' }}) }}
-        <div class="panel panel-info" id="installer">
-            <div class="panel-body bg-info">
-                {{ form_row(form._token) }}
-                <div class="section border-info">
-                    {{ 'symforium.installer.welcome'|trans|raw }}
-                </div>
-                <div class="section border-info">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-xs-5 form-group">
-                                {{ form_row(form.forumName) }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="section border-info">
-                    <p class="description">{{ 'symforium.installer.sections.mysql.description'|trans|raw }}</p>
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-xs-5 form-group">
-                                {{ form_row(form.mysqlHost) }}
-                            </div>
-                            <div class="col-xs-1"></div>
-                            <div class="col-xs-5 form-group">
-                                {{ form_row(form.mysqlUser) }}
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-xs-5 form-group">
-                                {{ form_row(form.mysqlPassword) }}
-                            </div>
-                            <div class="col-xs-1"></div>
-                            <div class="col-xs-5 form-group">
-                                {{ form_row(form.mysqlDatabase) }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="section border-info">
-                    <p class="description">{{ 'symforium.installer.sections.user.description'|trans|raw }}</p>
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-xs-5 form-group">
-                                {{ form_row(form.adminUsername) }}
-                            </div>
-                            <div class="col-xs-1"></div>
-                            <div class="col-xs-5 form-group">
-                                {{ form_row(form.adminEmail) }}
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-xs-5 form-group">
-                                {{ form_row(form.adminPassword.first) }}
-                            </div>
-                            <div class="col-xs-1"></div>
-                            <div class="col-xs-5 form-group">
-                                {{ form_row(form.adminPassword.second) }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="well">
-            <div class="container">
+    <div class="panel panel-info" id="installer">
+        <div class="panel-body bg-info">
+            <div class="section border-info">
                 <div class="row">
-                    <div class="col-xs-9" id="disclaimer">
-                        After clicking this button, your forum will be installed. You will be able to log in with the provided information.
+                    <div class="col-xs-10">
+                        {{ 'symforium.installer.welcome'|trans|raw }}
                     </div>
                     <div class="col-xs-2">
-                        {{ form_row(form.submit) }}
+                        <a class="btn btn-success" href="{{ url('symforium_installer_step_one') }}">
+                            {{ 'symforium.installer.step.next'|trans|raw }}
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
-    {{ form_end(form) }}
+    </div>
 {% endblock %}

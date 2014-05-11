@@ -1,0 +1,10 @@
+{% trans_default_domain "symforium" %}
+{% extends 'SymforiumInstallerBundle:Installer:installer.html.twig' %}
+
+{% block content %}
+    <div class="panel panel-info" id="installer">
+        <div class="panel-body bg-info">
+            You have already ran the installer. If you want to run the installer again, please delete the <code>{{ file }}</code> file.
+        </div>
+    </div>
+{% endblock %}

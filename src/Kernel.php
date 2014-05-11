@@ -12,7 +12,6 @@
 namespace Symforium\Core;
 
 use Aequasi\Environment\Environment;
-use Craue\FormFlowBundle\CraueFormFlowBundle;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use FOS\UserBundle\FOSUserBundle;
 use Sensio\Bundle as SensioBundle;
@@ -48,7 +47,7 @@ abstract class Kernel extends SymfonyKernel
     /**
      * @param Environment $environment
      */
-    final public function initialize(Environment $environment)
+    public function initialize(Environment $environment)
     {
         $this->environment = $environment->getType();
         $this->debug       = $environment->isDebug();
@@ -73,7 +72,6 @@ abstract class Kernel extends SymfonyKernel
             new SensioBundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
             new WhiteOctoberBreadcrumbsBundle(),
             new FOSUserBundle(),
-            new CraueFormFlowBundle(),
             //new KnpMenuBundle(),
             //new AequasiCacheBundle(),
             new Bundle\CoreBundle\SymforiumCoreBundle(),

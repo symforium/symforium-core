@@ -1,0 +1,19 @@
+{% trans_default_domain "symforium" %}
+{% extends 'SymforiumInstallerBundle:Installer:installer.html.twig' %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+        $(function() {
+            setTimeout(function() { window.location.href = '{{ url }}'; }, 5000);
+        })
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="panel panel-info" id="installer">
+        <div class="panel-body bg-info">
+            You have successfully installed Symforium. Redirecting to main page in 5 seconds. Click <a href="{{ url }}">here</a> if the redirect doesn't happen.
+        </div>
+    </div>
+{% endblock %}

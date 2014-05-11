@@ -1,0 +1,79 @@
+{% trans_default_domain "symforium" %}
+{% extends 'SymforiumCoreBundle:Layout:main.html.twig' %}
+
+{% block menu %}
+    <div class="pull-right" id="support">
+        {{ 'symforium.installer.support'|trans|raw }}
+    </div>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+
+    <style type="text/css">
+        #support {
+            padding: 15px 0;
+        }
+
+        div.section {
+            border-bottom: 1px solid #5bc0de;
+            padding: 10px 0 5px;
+        }
+
+        div.section:first-of-type {
+            /**border-top: 1px solid #5bc0de;*/
+        }
+
+        div.section:last-of-type {
+            border-bottom: none;
+        }
+
+
+        #logo a:after {
+            content: ' - Installer';
+            font-size: 70%;
+            top: -1px;
+            position: relative;
+        }
+
+        #disclaimer {
+            padding-top: 8px;
+            text-align: center;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        $(function () {
+            $('.form-group').each(function () {
+                var div = $(this), errorDiv = div.find('ul'), errors, error, field, label;
+
+                if (errorDiv.length < 1) {
+                    return true;
+                }
+                div.addClass('has-error');
+
+                errors = errorDiv.find('li');
+                error = errors.eq(0).text();
+                errorDiv.remove();
+
+                field = div.find(':input');
+                label = div.find('label');
+
+                field.on(
+                    'blur',
+                    function () {
+                        div.removeClass('has-error');
+                        label.html(label.data('original-label'));
+                    }
+                );
+
+                label
+                    .data('original-label', label.html())
+                    .html(label.html() + '<span class="text-danger"> - ' + error + '</span>')
+                ;
+            })
+        });
+    </script>
+{% endblock %}

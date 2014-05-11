@@ -1,0 +1,14 @@
+parameters:
+    database_driver: pdo_mysql
+    database_host: null
+    database_port: null
+    database_name: null
+    database_user: null
+    database_password: null
+    mailer_transport: null
+    mailer_host: null
+    mailer_user: null
+    mailer_password: null
+    forumName: null
+    locale: en
+    secret: $ymf0r1um

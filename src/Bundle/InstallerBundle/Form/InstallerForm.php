@@ -13,6 +13,8 @@ namespace Symforium\Core\Bundle\InstallerBundle\Form;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
+use Symfony\Component\Validator\Constraints;
 
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
@@ -30,6 +32,10 @@ class InstallerForm extends AbstractType
                     'attr'  => [
                         'placeholder' => 'Symforium',
                         'class'       => 'form-control'
+                    ],
+                    'constraints' => [
+                        new Constraints\NotBlank(),
+                        new Constraints\Length(['min' => 3])
                     ]
                 ]
             )
@@ -41,6 +47,10 @@ class InstallerForm extends AbstractType
                     'attr'  => [
                         'value' => '127.0.0.1',
                         'class' => 'form-control'
+                    ],
+                    'constraints' => [
+                        new Constraints\NotBlank(),
+                        new Constraints\Length(['min' => 3])
                     ]
                 ]
             )
@@ -48,10 +58,14 @@ class InstallerForm extends AbstractType
                 'mysqlUser',
                 'text',
                 [
-                    'label' => 'MySQL User',
+                    'label' => 'MySQL User (Use \':\' to signify port)',
                     'attr'  => [
                         'placeholder' => 'root',
                         'class'       => 'form-control'
+                    ],
+                    'constraints' => [
+                        new Constraints\NotBlank(),
+                        new Constraints\Length(['min' => 3])
                     ]
                 ]
             )
@@ -61,8 +75,11 @@ class InstallerForm extends AbstractType
                 [
                     'label' => 'MySQL Password',
                     'attr'  => [
-                        'placeholder' => 'root',
                         'class'       => 'form-control'
+                    ],
+                    'constraints' => [
+                        new Constraints\NotBlank(),
+                        new Constraints\Length(['min' => 3])
                     ]
                 ]
             )
@@ -74,6 +91,9 @@ class InstallerForm extends AbstractType
                     'attr'  => [
                         'value' => 'symforium',
                         'class' => 'form-control'
+                    ],
+                    'constraints' => [
+                        new Constraints\NotBlank()
                     ]
                 ]
             )
@@ -85,6 +105,10 @@ class InstallerForm extends AbstractType
                     'attr'  => [
                         'value' => 'admin',
                         'class' => 'form-control'
+                    ],
+                    'constraints' => [
+                        new Constraints\NotBlank(),
+                        new Constraints\Length(['min' => 3])
                     ]
                 ]
             )
@@ -96,6 +120,10 @@ class InstallerForm extends AbstractType
                     'attr'  => [
                         'placeholder' => 'john@doe.com',
                         'class'       => 'form-control'
+                    ],
+                    'constraints' => [
+                        new Constraints\NotBlank(),
+                        new Constraints\Email()
                     ]
                 ]
             )
@@ -110,13 +138,17 @@ class InstallerForm extends AbstractType
                     'required'        => true,
                     'first_options'   => ['label' => 'Password'],
                     'second_options'  => ['label' => 'Repeat Password'],
+                    'constraints' => [
+                        new Constraints\NotBlank(),
+                        new Constraints\Length(['min' => 7])
+                    ]
                 ]
             )
             ->add(
                 'submit',
                 'submit',
                 [
-                    'label' => 'Install Symforium',
+                    'label' => 'Install Symforium!',
                     'attr'  => [
                         'class' => 'btn btn-success'
                     ]
@@ -131,6 +163,18 @@ class InstallerForm extends AbstractType
     public function getName()
     {
         return 'symforium_installer';
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
+    {
+       $resolver->setDefaults(
+           [
+               'csrf_protection' => false
+           ]
+       );
     }
 }
  

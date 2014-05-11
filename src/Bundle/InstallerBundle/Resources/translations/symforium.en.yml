@@ -1,15 +1,46 @@
 symforium:
     installer:
+        step_one:
+            description: |
+                You will want a name for your forum. Make sure it's a good one!
+            forum_name:
+                label: 'Forum Name'
+                placeholder: 'Symforium'
+        step_two:
+            description: |
+                Symforium will need access to a mysql database in order to store all your forum's data in,
+                such as conversations and posts.  If you don't know these values, please contact your administrator.
+            mysql_host:
+                label: MySQL Host
+            mysql_database:
+                label: MySQL Database Name
+                placeholder: symforium
+            mysql_user:
+                label: |
+                    MySQL Database Name (Use ':' to signify port)
+                placeholder: symforium
+            mysql_password:
+                label: MySQL Password
+        step_three:
+            description: |
+                Symforium will need some information to set up an administrator account.
+                Fill in the following fields to create it.
+            admin_username:
+                label: Username
+                value: admin
+            admin_email:
+                label: E-Mail
+                placeholder: john@doe.com
+            admin_password:
+                label: Password
+            admin_password_repeat:
+                label: Repeat your Password
+        step:
+            next: Next Step!
+            final: Install Symfonium!
         title: Symforium Installer
+        support: |
+            If you have any issues, check out the #symforium channel in Freenode
         welcome: >
-            <p>Welcome to the Symforium Installer! Follow the instructions below to set up your new forum.</p>
-            <p>If you have any issues, check out the #symforium channel in Freenode</p>
-        sections:
-            mysql:
-                description: |
-                    Symforium will need access to a mysql database in order to store all your forum's data in,
-                    such as conversations and posts.  If you don't know these values, please contact your administrator.
-            user:
-                description: |
-                    Symforium will need some information to set up an administrator account.
-                    Fill in the following fields to create it.
+            <p>Welcome to the Symforium Installer! Follow the instructions on the following pages to set up your new forum.</p>
+            <p>Click the following button to get started!</p>

@@ -1,0 +1,38 @@
+{% trans_default_domain "symforium" %}
+{% extends 'SymforiumInstallerBundle:Installer:installer.html.twig' %}
+
+{% block content %}
+    {{ form_start(form, {'attr': {'role': 'form', 'novalidate': 'true' }}) }}
+    <div class="panel panel-info" id="installer">
+        <div class="panel-body bg-info">
+            <div class="section border-info">
+                <p class="description">{{ 'symforium.installer.sections.mysql.description'|trans|raw }}</p>
+                <div class="row">
+                    <div class="col-xs-6 form-group">
+                        {{ form_row(form.mysqlHost) }}
+                    </div>
+                    <div class="col-xs-6 form-group">
+                        {{ form_row(form.mysqlDatabase) }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 form-group">
+                        {{ form_row(form.mysqlUser) }}
+                    </div>
+                    <div class="col-xs-6 form-group">
+                        {{ form_row(form.mysqlPassword) }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-10">
+                    </div>
+                    <div class="col-xs-2">
+                        {{ form_row(form.submit) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ form_rest(form) }}
+    {{ form_end(form) }}
+{% endblock %}

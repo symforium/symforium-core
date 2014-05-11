@@ -1,0 +1,47 @@
+{% trans_default_domain "symforium" %}
+{% extends 'SymforiumInstallerBundle:Installer:installer.html.twig' %}
+
+{% block content %}
+    {{ form_start(form, {'attr': {'role': 'form', 'novalidate': 'true' }}) }}
+    <div class="panel panel-info" id="installer">
+        <div class="panel-body bg-info">
+            <div class="section border-info">
+                <p class="description">{{ 'symforium.installer.sections.user.description'|trans|raw }}</p>
+
+                <div class="row">
+                    <div class="col-xs-5 form-group">
+                        {{ form_row(form.adminUsername) }}
+                    </div>
+                    <div class="col-xs-1"></div>
+                    <div class="col-xs-5 form-group">
+                        {{ form_row(form.adminEmail) }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-5 form-group">
+                        {{ form_row(form.adminPassword.first) }}
+                    </div>
+                    <div class="col-xs-1"></div>
+                    <div class="col-xs-5 form-group">
+                        {{ form_row(form.adminPassword.second) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="well well-sm">
+        <div class="container">
+            <div class="row">
+                <div class="col-xs-9" id="disclaimer">
+                    After clicking this button, your forum will be installed. You will be able to log in with the
+                    provided information.
+                </div>
+                <div class="col-xs-2">
+                    {{ form_row(form.submit) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ form_rest(form) }}
+    {{ form_end(form) }}
+{% endblock %}

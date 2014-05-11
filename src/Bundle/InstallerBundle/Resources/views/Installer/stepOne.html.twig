@@ -1,0 +1,26 @@
+{% trans_default_domain "symforium" %}
+{% extends 'SymforiumInstallerBundle:Installer:installer.html.twig' %}
+
+{% block content %}
+    {{ form_start(form, {'attr': {'role': 'form', 'novalidate': 'true' }}) }}
+    <div class="panel panel-info" id="installer">
+        <div class="panel-body bg-info">
+            <div class="section border-info">
+
+                <p class="description">{{ 'symforium.installer.step_one.description'|trans|raw }}</p>
+                <hr class="border-info" />
+
+                <div class="row">
+                    <div class="col-xs-7 form-group">
+                        {{ form_row(form.forumName) }}
+                    </div>
+                    <div class="col-xs-2 pull-right" style="margin: 20px;">
+                        {{ form_row(form.submit) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ form_rest(form) }}
+    {{ form_end(form) }}
+{% endblock %}
