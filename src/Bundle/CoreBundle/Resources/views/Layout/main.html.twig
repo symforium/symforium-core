@@ -1,3 +1,4 @@
+{% trans_default_domain "symforium" %}
 <!DOCTYPE html>
 <html>
     <head>
@@ -19,19 +20,28 @@
             {% block navigation %}
                 <div id="main-nav">
                     <div class="container">
-                        <nav class="pull-left">
-                            <ul>
-                                <li>Home</li>
-                                <li>Static 1</li>
-                                <li>Static 2</li>
-                            </ul>
-                        </nav>
-                        <nav class="pull-right">
-                            <ul>
-                                <li><a href="{{ url('fos_user_registration_register') }}">Register</a></li>
-                                <li><a href="{{ url('fos_user_security_login') }}">Sign In</a></li>
-                            </ul>
-                        </nav>
+                        {% block logo %}
+                            <div id="logo" class="pull-left">
+                                <a href="{{ url('symforium_core_core_index_index') }}">
+                                    {{ 'symforium.title'|trans }}
+                                </a>
+                            </div>
+                        {% endblock %}
+                        {% block menu %}
+                            <nav class="pull-left">
+                                <ul>
+                                    <li>Home</li>
+                                    <li>Static 1</li>
+                                    <li>Static 2</li>
+                                </ul>
+                            </nav>
+                            <nav class="pull-right">
+                                <ul>
+                                    <li><a href="{{ url('fos_user_registration_register') }}">Register</a></li>
+                                    <li><a href="{{ url('fos_user_security_login') }}">Sign In</a></li>
+                                </ul>
+                            </nav>
+                        {% endblock %}
                     </div>
                 </div>
             {% endblock %}

@@ -81,9 +81,15 @@ abstract class Kernel extends SymfonyKernel
         ];
 
         if (in_array($this->getEnvironment(), ['dev', 'test'])) {
-            $bundles[] = new SymfonyBundle\WebProfilerBundle\WebProfilerBundle();
-            $bundles[] = new SensioBundle\DistributionBundle\SensioDistributionBundle();
-            $bundles[] = new SensioBundle\GeneratorBundle\SensioGeneratorBundle();
+            $bundles = array_merge(
+                $bundles,
+                [
+                    new SymfonyBundle\WebProfilerBundle\WebProfilerBundle(),
+                    new SensioBundle\DistributionBundle\SensioDistributionBundle(),
+                    new SensioBundle\GeneratorBundle\SensioGeneratorBundle(),
+                    new Bundle\InstallerBundle\SymforiumInstallerBundle()
+                ]
+            );
         }
 
         $bundles = array_merge($bundles, $this->registerSymforiumBundles());

@@ -1,16 +1,44 @@
+@brand-primary: #428bca;
+@brand-success: #5cb85c;
+@brand-info:    #5bc0de;
+@brand-warning: #f0ad4e;
+@brand-danger:  #d9534f;
+
+.border-primary {
+    border-color: @brand-primary;
+}
+.border-success {
+    border-color: @brand-success;
+}
+.border-info {
+    border-color: @brand-info;
+}
+.border-warning {
+    border-color: @brand-warning;
+}
+.border-danger {
+    border-color: @brand-danger;
+}
+
 #main-nav {
     height: 50px;
     border-bottom: 1px solid #CCC;
 
-    nav {
-        a {
-            color: #222222;
-        }
+    a {
+        color: #222222;
+    }
 
-        a:hover {
-            color: #999999;
-            text-decoration: none;
-        }
+    a:hover {
+        color: #999999;
+        text-decoration: none;
+    }
+
+    #logo {
+        padding: 8px 25px 15px 0;
+        font-size: 150%;
+    }
+
+    nav {
 
         ul {
             padding: 0;
@@ -20,9 +48,9 @@
 
             li {
                 float: left;
-                width: 100px;
-                padding: 15px 0;
+                padding: 15px;
                 height: 50px;
+                text-align: center;
             }
         }
     }

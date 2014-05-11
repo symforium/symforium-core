@@ -1,0 +1,15 @@
+symforium:
+    installer:
+        title: Symforium Installer
+        welcome: >
+            <p>Welcome to the Symforium Installer! Follow the instructions below to set up your new forum.</p>
+            <p>If you have any issues, check out the #symforium channel in Freenode</p>
+        sections:
+            mysql:
+                description: |
+                    Symforium will need access to a mysql database in order to store all your forum's data in,
+                    such as conversations and posts.  If you don't know these values, please contact your administrator.
+            user:
+                description: |
+                    Symforium will need some information to set up an administrator account.
+                    Fill in the following fields to create it.

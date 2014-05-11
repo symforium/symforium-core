@@ -11,7 +11,7 @@ framework:
         engines: ['twig']
     default_locale:  "%locale%"
     http_method_override: true
-    translator: ~
+    translator: { fallback: en }
     session: ~
     form: ~
     csrf_protection: ~
