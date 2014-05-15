@@ -1,58 +1,25 @@
 {% trans_default_domain "symforium" %}
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Symforium</title>
-        {% block jquery %}
-            <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-        {% endblock %}
-        {% block javascripts %}
-            <script src="/bundles/symforiumcore/js/vendor.min.js"></script>
-        {% endblock %}
-        {% block stylesheets %}
-            <link rel="stylesheet" type="text/css" media="all" href="/bundles/symforiumcore/css/main.css" />
-            <link rel="stylesheet" type="text/css" media="all" href="/bundles/symforiumcore/css/vendor.min.css" />
-        {% endblock %}
-    </head>
-    <body>
-        {% block body %}
+{% extends 'SymforiumCoreBundle:Layout:layout.html.twig' %}
 
-            {% block navigation %}
-                <div id="main-nav">
-                    <div class="container">
-                        {% block logo %}
-                            <div id="logo" class="pull-left">
-                                <a href="{{ url('symforium_core_core_index_index') }}">
-                                    {{ 'symforium.title'|trans }}
-                                </a>
-                            </div>
-                        {% endblock %}
-                        {% block menu %}
-                            <nav class="pull-left">
-                                <ul>
-                                    <li>Home</li>
-                                    <li>Static 1</li>
-                                    <li>Static 2</li>
-                                </ul>
-                            </nav>
-                            <nav class="pull-right">
-                                <ul>
-                                    <li><a href="{{ url('fos_user_registration_register') }}">Register</a></li>
-                                    <li><a href="{{ url('fos_user_security_login') }}">Sign In</a></li>
-                                </ul>
-                            </nav>
-                        {% endblock %}
-                    </div>
-                </div>
-            {% endblock %}
+{% block menu %}
+    <ul class="nav navbar-nav">
+        <li><a href="{{ url('symforium_core_core_index_index') }}">Home</a></li>
+        <li><a href="#">Static 1</a></li>
+        <li><a href="#">Static 2</a></li>
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
+        {% if is_granted('ROLE_USER') %}
+            {% if is_granted('ROLE_ADMIN') %}
+                <li><a href="{{ url('symforium_core_core_admin_index') }}">Admin Panel</a></li>
+            {% else %}
+            {% endif %}
+        {% else %}
+            <li><a href="{{ url('fos_user_registration_register') }}">Register</a></li>
+            <li><a href="{{ url('fos_user_security_login') }}">Sign In</a></li>
+        {% endif %}
+    </ul>
+{% endblock %}
 
-            <section id="content">
-                <div class="container">
-                    {% block content %}
-                    {% endblock %}
-                </div>
-            </section>
-
-        {% endblock %}
-    </body>
-</html>
+{% block contentSection %}
+    {% block content %}{% endblock %}
+{% endblock %}

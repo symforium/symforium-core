@@ -1,2 +1,5 @@
 symforium:
-    title: Symforium
+    admin:
+        title: - Admin Panel
+    title: >
+        <span id="logo-sym">Sym</span><span id="logo-for">for</span><span id="logo-i">i</span><span id="logo-um">um</span>

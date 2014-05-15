@@ -1,0 +1,49 @@
+{% extends "SymforiumUserBundle::layout.html.twig" %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style type="text/css">
+        .form-box input {
+            width: 100%;
+            padding: 10px;
+            text-align: center;
+            height: 40px;
+            font-size: 80%;
+            border: 1px solid #ccc;;
+            transition: 0.2s ease-in-out;
+            text-transform: lowercase;
+        }
+        .form-box input:focus {
+            outline: 0;
+            background: #eee;
+        }
+        .form-box input[type="text"] {
+            border-radius: 5px 5px 0 0;
+        }
+        .form-box input[type="password"] {
+            border-radius: 0 0 5px 5px;
+            border-top: 0;
+        }
+        .form-box button {
+            margin-top: 15px;
+            padding: 10px 20px;
+        }
+    </style>
+{% endblock %}
+
+{% block fos_user_content %}
+    <div class="row"><h3 class="text-primary">{{ 'security.login.title'|trans({}, 'FOSUserBundle') }}</h3></div>
+
+    <div id="output">{{ error|trans({}, 'FOSUserBundle') }}</div>
+    <div class="form-box">
+        <form action="{{ path("fos_user_security_check") }}" method="post">
+            <input placeholder="{{ 'security.login.username'|trans({}, 'FOSUserBundle') }}" type="text"
+                   name="_username" value="{{ last_username }}" required="required"/>
+            <input placeholder="{{ 'security.login.password'|trans({}, 'FOSUserBundle') }}" type="password"
+                   name="_password" required="required"/>
+            <button type="submit" class="btn btn-primary btn-block">
+                {{ 'security.login.submit'|trans({}, 'FOSUserBundle') }}
+            </button>
+        </form>
+    </div>
+{% endblock fos_user_content %}

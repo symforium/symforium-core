@@ -1,0 +1,7 @@
+security:
+    login:
+        title: Login
+        username: Username
+        password: Password
+    register:
+        title: Register

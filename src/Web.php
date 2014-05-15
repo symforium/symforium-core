@@ -72,7 +72,7 @@ class Web
     {
         $this->kernel = $kernel;
         $this->kernel->initialize($this->environment);
-        $this->kernel->loadClassCache();
+        //$this->kernel->loadClassCache();
     }
 
     /**

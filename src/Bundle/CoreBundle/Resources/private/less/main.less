@@ -1,61 +1,179 @@
 @brand-primary: #428bca;
 @brand-success: #5cb85c;
-@brand-info:    #5bc0de;
+@brand-info: #5bc0de;
 @brand-warning: #f0ad4e;
-@brand-danger:  #d9534f;
+@brand-danger: #d9534f;
+
+* {
+    font-family: 'Source Sans Pro', sans-serif;
+    color: rgba(44, 62, 80, 1.0);
+}
+
+.navbar-brand {
+    span {
+        color: rgba(236, 240, 241, 1);
+    }
+
+    span#logo-for, span#logo-um {
+        font-weight: 400;
+    }
+
+    span#logo-sym, span#logo-i {
+        font-weight: 300;
+    }
+
+    span#logo-i {
+        color: rgba(52, 152, 219, 1);
+        font-style: italic;
+    }
+}
+
+.navbar-brand:hover {
+    span#logo-sym, span#logo-i {
+        font-weight: 400;
+    }
+
+    span#logo-for, span#logo-um {
+        font-weight: 300;
+    }
+
+    span#logo-i {
+        color: rgba(26, 188, 156, 1);
+    }
+}
 
 .border-primary {
     border-color: @brand-primary;
 }
+
 .border-success {
     border-color: @brand-success;
 }
+
 .border-info {
     border-color: @brand-info;
 }
+
 .border-warning {
     border-color: @brand-warning;
 }
+
 .border-danger {
     border-color: @brand-danger;
 }
 
-#main-nav {
+#global-search-div {
     height: 50px;
-    border-bottom: 1px solid #CCC;
+    width: 300px;
+    margin-right: -15px;
+    border-left: 1px solid;
 
-    a {
-        color: #222222;
+    span {
+        position: absolute;
+        right: 15px;
+        top: 18px;
+        color: #555;
     }
 
-    a:hover {
-        color: #999999;
-        text-decoration: none;
+    input {
+        display: block;
+        width: 100%;
+        padding: 6px 35px 6px 12px;
+        font-size: 18px;
+        line-height: 1.42857143;
+        color: #555;
+        border: none;
+        height: 49px;
     }
 
-    #logo {
-        padding: 8px 25px 15px 0;
-        font-size: 150%;
+    input:focus {
+        box-shadow: none;
+        -webkit-box-shadow: none;
+        -moz-box-shadow: none;
+        -moz-transition: none;
+        -webkit-transition: none;
+        outline: none;
     }
 
-    nav {
+    ::-webkit-input-placeholder {
+        /* WebKit browsers */
+        color: #555;
+    }
+    :-moz-placeholder {
+        /* Mozilla Firefox 4 to 18 */
+        color: #555;
+        opacity: 1;
+    }
+    ::-moz-placeholder {
+        /* Mozilla Firefox 19+ */
+        color: #555;
+        opacity: 1;
+    }
+    :-ms-input-placeholder {
+        /* Internet Explorer 10+ */
+        color: #555;
+    }
+}
 
-        ul {
-            padding: 0;
-            list-style: none;
-            float: left;
-            width: 100%;
+#admin-nav {
+    ul {
+        list-style: none;
 
-            li {
-                float: left;
-                padding: 15px;
-                height: 50px;
-                text-align: center;
+        li {
+            border-bottom: 1px solid rgba(189, 195, 199,1.0);
+            border-radius: 3px;
+            background: rgba(236, 240, 241,1.0);
+            box-shadow: 0px 1px 0px rgba(189, 195, 199,1.0);
+            height: 30px;
+            width: 150px;
+            padding: 3px 10px;
+            margin: 5px -20px;
+            text-align: right;
+
+            i {
+                margin-left: 8px;
+            }
+
+            a {
+                color: rgba(44, 62, 80,1.0);
+            }
+
+            a:hover {
+                color: rgba(41, 128, 185,1.0);
+                text-decoration: none;
+            }
+
+            a:hover i {
+                color: rgba(41, 128, 185,1.0);
             }
         }
     }
 }
 
-section#content {
-    padding: 20px;
+#navigation > .navbar {
+
+    .navbar-brand, a {
+        font-weight: 300;
+    }
+
+    .collapse {
+        .nav.navbar-nav {
+            a {
+                height: 30px;
+            }
+        }
+    }
+}
+
+body {
+    background-color: rgba(189, 195, 199,1.0);
+    padding-top: 50px;
+}
+
+section#content > .container {
+    padding: 25px 50px;
+    min-height: 500px;
+    border-radius: 0 0 3px 3px;
+    border: 1px solid rgba(236, 240, 241,1.0);
+    background: rgba(236, 240, 241,1.0);
 }

@@ -1,0 +1,45 @@
+{% trans_default_domain "symforium" %}
+{% extends 'SymforiumCoreBundle:Layout:layout.html.twig' %}
+
+{% block title %}Symforium - Admin Panel{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style type="text/css">
+        #logo > a:after {
+            content: '{{ 'symforium.admin.title'|trans }}';
+            font-size: 70%;
+            top: -2px;
+            position: relative;
+        }
+    </style>
+{% endblock %}
+
+{% block menu %}
+    <ul class="nav navbar-nav">
+        <li><a>Admin 1</a></li>
+        <li><a>Admin 2</a></li>
+        <li><a>Admin 3</a></li>
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
+        <li><a href="{{ url('symforium_core_core_index_index') }}">View Site</a></li>
+    </ul>
+{% endblock %}
+
+{% block contentSection %}
+    <div class="row">
+        <div class="col-xs-10">
+            {% block content %}{% endblock %}
+        </div>
+        <div class="col-xs-2">
+            {% block admin_menu %}
+                <nav id="admin-nav">
+                    <ul>
+                        <li><a href="{{ url('symforium_core_core_admin_index') }}">Dashboard<i class="fa fa-dashboard"></i></a></li>
+                        <li><a href="#">Settings<i class="fa fa-gears"></i></a></li>
+                    </ul>
+                </nav>
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}

@@ -66,6 +66,7 @@ bldr:
                             files:
                                 - bootstrap.css
                                 - font-awesome.css
+                                - flat-ui.css
                     dest: src/Bundle/CoreBundle/Resources/private/build/css/vendor.css
                 -
                     type: minify:css
@@ -86,7 +87,10 @@ bldr:
                         -
                             path: src/Bundle/CoreBundle/Resources/private/js/
                             files:
+                                - jquery.js
                                 - bootstrap.js
+                                - flatui-checkbox.js
+                                - flatui-radio.js
                     dest: src/Bundle/CoreBundle/Resources/private/build/js/vendor.js
                 -
                     type: minify:js
@@ -95,7 +99,7 @@ bldr:
                     dest: src/Bundle/CoreBundle/Resources/private/build/js/vendor.min.js
 
         copyAssets:
-            description: Copies assets from src/Bundle/CoreBundle/Resources/private/build/ and src/Bundle/CoreBundle/Resource/private/fonts/ to src/Bundle/CoreBundle/Resources/public
+            description: Copies assets from build, fonts, and images to src/Bundle/CoreBundle/Resources/public
             calls:
                 -
                     type: filesystem:remove
@@ -124,13 +128,13 @@ bldr:
                         - -r
                         - src/Bundle/CoreBundle/Resources/private/fonts
                         - src/Bundle/CoreBundle/Resources/public/
-                #-
-                #    type: exec
-                #    executable: cp
-                #    arguments:
-                #        - -r
-                #        - src/Bundle/CoreBundle/Resources/private/images
-                #        - src/Bundle/CoreBundle/Resources/public/
+                -
+                    type: exec
+                    executable: cp
+                    arguments:
+                        - -r
+                        - src/Bundle/CoreBundle/Resources/private/images
+                        - src/Bundle/CoreBundle/Resources/public/
 
         watchAssets:
             description: Watches for changes in the src/Bundle/CoreBundle/Resources/private directory

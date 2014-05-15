@@ -11,7 +11,6 @@ security:
             pattern: ^/
             form_login:
                 provider: fos_userbundle
-                csrf_provider: form.csrf_provider
             logout:       true
             anonymous:    true
 
@@ -19,4 +18,4 @@ security:
         - { path: ^/login$, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/resetting, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/manage/, role: ROLE_ADMIN }
+        - { path: ^/manage, role: ROLE_ADMIN }
