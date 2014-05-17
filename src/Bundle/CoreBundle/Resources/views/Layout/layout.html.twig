@@ -16,7 +16,7 @@
         {% block body %}
             {% block navigation %}
                 <div id="navigation">
-                    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+                    <nav class="navbar navbar-inverse navbar-fixed-top navbar-lg" role="navigation">
                         <div class="container">
                             <div class="navbar-header">
                                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar-collapse">
@@ -39,7 +39,9 @@
 
             <section id="content">
                 <div class="container">
-                    {% block contentSection %}{% endblock %}
+                    {% block contentSection %}
+                        {% block content %}{% endblock %}
+                    {% endblock %}
                 </div>
             </section>
         {% endblock %}

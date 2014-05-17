@@ -6,6 +6,12 @@
 {% block stylesheets %}
     {{ parent() }}
     <style type="text/css">
+        section#content > .container, #navigation .container {
+            width: 100%;
+            padding-left: 50px;
+            padding-right: 50px;
+        }
+
         #logo > a:after {
             content: '{{ 'symforium.admin.title'|trans }}';
             font-size: 70%;
@@ -17,29 +23,29 @@
 
 {% block menu %}
     <ul class="nav navbar-nav">
-        <li><a>Admin 1</a></li>
-        <li><a>Admin 2</a></li>
-        <li><a>Admin 3</a></li>
+        <li><a href="{{ url('symforium_core_core_admin_index') }}"><i class="fa fa-dashboard text-muted"></i> Dashboard</a></li>
+        <li><a href="#"><i class="fa fa-gears text-muted"></i> Settings</a></li>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-globe text-muted"></i> Plugins <b class="caret"></b></a>
+            <span class="dropdown-arrow"></span>
+            <ul class="dropdown-menu multi-level">
+                <li class="dropdown-submenu">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="{{ url('symforium_plugin_cmsplugin_backend_index') }}">
+                        <i class="fa fa-pencil-square"></i>
+                        CMS
+                    </a>
+                    <span class="dropdown-arrow"></span>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Action</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
         <li><a href="{{ url('symforium_core_core_index_index') }}">View Site</a></li>
     </ul>
-{% endblock %}
-
-{% block contentSection %}
-    <div class="row">
-        <div class="col-xs-10">
-            {% block content %}{% endblock %}
-        </div>
-        <div class="col-xs-2">
-            {% block admin_menu %}
-                <nav id="admin-nav">
-                    <ul>
-                        <li><a href="{{ url('symforium_core_core_admin_index') }}">Dashboard<i class="fa fa-dashboard"></i></a></li>
-                        <li><a href="#">Settings<i class="fa fa-gears"></i></a></li>
-                    </ul>
-                </nav>
-            {% endblock %}
-        </div>
-    </div>
 {% endblock %}

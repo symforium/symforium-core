@@ -1,0 +1,7 @@
+services:
+    symforium.core.core_bundle.loader.plugin_route_loader:
+        class: Symforium\Core\Bundle\CoreBundle\Loader\PluginRouteLoader
+        arguments:
+            - %symforium.plugins%
+        tags:
+            - { name: routing.loader }

@@ -20,13 +20,13 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 abstract class Plugin extends Bundle
 {
     /**
-     * Returns the name of the plugin
+     * Returns the resource name of the routing file
      *
-     * @return string
+     * @return bool|string
      */
-    public function getName()
+    public static function getRoutingFile()
     {
-        return static::underscore(__CLASS__);
+        return false;
     }
 
     /**

@@ -38,9 +38,19 @@ abstract class Kernel extends SymfonyKernel
 
     protected function getKernelParameters()
     {
+        $plugins = array();
+        foreach ($this->bundles as $name => $bundle) {
+            if ($bundle instanceof Plugin) {
+                $plugins[$name] = get_class($bundle);
+            }
+        }
+
         return array_merge(
             parent::getKernelParameters(),
-            array('symforium.core_dir' => realpath(__DIR__))
+            array(
+                'symforium.core_dir' => realpath(__DIR__),
+                'symforium.plugins'  => $plugins
+            )
         );
     }
 
@@ -90,7 +100,7 @@ abstract class Kernel extends SymfonyKernel
             );
         }
 
-        $bundles = array_merge($bundles, $this->registerSymforiumBundles());
+        $bundles = array_merge($bundles, $this->registerPlugins());
 
         return $bundles;
     }
@@ -98,7 +108,7 @@ abstract class Kernel extends SymfonyKernel
     /**
      * @return array
      */
-    protected function registerSymforiumBundles()
+    protected function registerPlugins()
     {
         return [];
     }

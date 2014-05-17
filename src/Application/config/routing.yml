@@ -3,6 +3,10 @@ symforium_core:
     type:     annotation
     prefix:   /
 
+symforium_plugins:
+    resource: .
+    type: symforium
+
 fos_user_security:
     resource: "@FOSUserBundle/Resources/config/routing/security.xml"
 
