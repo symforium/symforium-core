@@ -41,7 +41,42 @@ bldr:
                     failOnError: false
                     src:
                         - { path: src/Bundle/CoreBundle/Resources/private/less/, files: main.less }
-                    dest: src/Bundle/CoreBundle/Resources/private/build/css/main.css
+                    dest: src/Bundle/CoreBundle/Resources/private/build/less/main.css
+                -
+                    type: less
+                    failOnError: false
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/less/, files: admin.less }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/less/admin.css
+        minifyCss:
+            calls:
+                -
+                    type: concat
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/css/, files: [bootstrap.css, font-awesome.css, flat-ui.css] }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/css/vendor.css
+                -
+                    type: concat
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/build/less/, files: admin.css }
+                        - { path: src/Bundle/CoreBundle/Resources/private/js/codemirror/, files: [lib/codemirror.css, theme/solarized.css] }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/css/admin.css
+                -
+                    type: minify:css
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/build/less/, files: main.css }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/css/main.min.css
+                -
+                    type: minify:css
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/build/css/, files: vendor.css }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/css/vendor.min.css
+                -
+                    type: minify:css
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/build/css/, files: admin.css }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/css/admin.min.css
+
         compileCoffee:
             calls:
                 -
@@ -51,29 +86,6 @@ bldr:
                         - { path: src/Resources/private/coffee/, files: main.coffee }
                         - { path: src/Resources/private/coffee/dvd, files: *.coffee, recursive: true }
                     dest: src/Resources/private/build/js/main.js
-        minifyCss:
-            calls:
-                -
-                    type: minify:css
-                    src:
-                        - { path: src/Bundle/CoreBundle/Resources/private/build/css/, files: main.css }
-                    dest: src/Bundle/CoreBundle/Resources/private/build/css/main.min.css
-                -
-                    type: concat
-                    src:
-                        -
-                            path: src/Bundle/CoreBundle/Resources/private/css/
-                            files:
-                                - bootstrap.css
-                                - font-awesome.css
-                                - flat-ui.css
-                                - pagedown.css
-                    dest: src/Bundle/CoreBundle/Resources/private/build/css/vendor.css
-                -
-                    type: minify:css
-                    src:
-                        - { path: src/Bundle/CoreBundle/Resources/private/build/css/, files: vendor.css }
-                    dest: src/Bundle/CoreBundle/Resources/private/build/css/vendor.min.css
         minifyJs:
             calls:
                 -
@@ -86,6 +98,17 @@ bldr:
                     type: concat
                     src:
                         -
+                            path: src/Bundle/CoreBundle/Resources/private/js/codemirror
+                            files:
+                                - lib/codemirror.js
+                                - addon/edit/continuelist.js
+                                - mode/xml/xml.js
+                                - mode/markdown/markdown.js
+                    dest: src/Bundle/CoreBundle/Resources/private/js/codemirror.js
+                -
+                    type: concat
+                    src:
+                        -
                             path: src/Bundle/CoreBundle/Resources/private/js/
                             files:
                                 - jquery.js
@@ -94,17 +117,30 @@ bldr:
                                 - bootstrap-switch.js
                                 - flatui-checkbox.js
                                 - flatui-radio.js
-                                - pagedown.js
-                                - tabby.js
-                                - speakingurl.js
-                                - jarvismenu.js
-                                - mousetrap.js
                     dest: src/Bundle/CoreBundle/Resources/private/build/js/vendor.js
                 -
                     type: minify:js
                     src:
                         - { path: src/Bundle/CoreBundle/Resources/private/build/js/, files: vendor.js }
                     dest: src/Bundle/CoreBundle/Resources/private/build/js/vendor.min.js
+                -
+                    type: concat
+                    src:
+                        -
+                            path: src/Bundle/CoreBundle/Resources/private/js/
+                            files:
+                                - codemirror.js
+                                - tabby.js
+                                - jarvismenu.js
+                                - mousetrap.js
+                                - speakingurl.js
+                                - marked.js
+                    dest: src/Bundle/CoreBundle/Resources/private/build/js/admin.js
+                -
+                    type: minify:js
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/build/js/, files: admin.js }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/js/admin.min.js
 
         copyAssets:
             description: Copies assets from build, fonts, and images to src/Bundle/CoreBundle/Resources/public

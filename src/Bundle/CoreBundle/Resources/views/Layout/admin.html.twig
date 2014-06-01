@@ -5,8 +5,14 @@
 
 {% block title %}Symforium - Admin Panel{% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
+    <script src="/bundles/symforiumcore/js/admin.js"></script>
+{% endblock %}
+
 {% block stylesheets %}
     {{ parent() }}
+    <link rel="stylesheet" type="text/css" media="all" href="/bundles/symforiumcore/css/admin.css" />
     <style type="text/css">
         #content {
             padding-left: 200px;

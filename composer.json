@@ -3,7 +3,7 @@
     "description": "Core for the Symforium project",
     "license":     "Apache-2.0",
     "require":     {
-        "symfony/symfony":                   "~2.4.0",
+        "symfony/symfony":                   "~2.5.0",
         "doctrine/dbal":                     "~2.4.0",
         "doctrine/orm":                      "~2.4.0",
         "doctrine/doctrine-bundle":          "~1.2.0",

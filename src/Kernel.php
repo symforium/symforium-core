@@ -89,7 +89,8 @@ abstract class Kernel extends SymfonyKernel
             new KnpMenuBundle(),
             //new AequasiCacheBundle(),
             new Bundle\CoreBundle\SymforiumCoreBundle(),
-            new Bundle\UserBundle\SymforiumUserBundle()
+            new Bundle\UserBundle\SymforiumUserBundle(),
+            new SymforiumCmsPlugin()
         ];
 
         if (in_array($this->getEnvironment(), ['dev', 'test'])) {

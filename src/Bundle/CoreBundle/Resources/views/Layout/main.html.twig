@@ -3,6 +3,16 @@
 {% set bodyType = 'main' %}
 {% extends 'SymforiumCoreBundle:Layout:layout.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" type="text/css" media="all" href="/bundles/symforiumcore/css/main.css" />
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="/bundles/symforiumcore/js/main.js"></script>
+{% endblock %}
+
 {% block menu %}
     <ul class="nav navbar-nav">
         <li><a href="/">Home</a></li>
