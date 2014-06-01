@@ -76,12 +76,12 @@ bldr:
                     dest: src/Bundle/CoreBundle/Resources/private/build/css/vendor.min.css
         minifyJs:
             calls:
-                #-
-                #    type: minify:js
-                #    failOnError: false
-                #    src:
-                #        - { path: src/Bundle/CoreBundle/Resources/private/build/js/, files: js.css }
-                #    dest: src/Bundle/CoreBundle/Resources/private/build/js/main.min.js
+                -
+                    type: minify:js
+                    failOnError: false
+                    src:
+                        - { path: src/Bundle/CoreBundle/Resources/private/js/, files: main.js }
+                    dest: src/Bundle/CoreBundle/Resources/private/build/js/main.min.js
                 -
                     type: concat
                     src:
@@ -97,6 +97,8 @@ bldr:
                                 - pagedown.js
                                 - tabby.js
                                 - speakingurl.js
+                                - jarvismenu.js
+                                - mousetrap.js
                     dest: src/Bundle/CoreBundle/Resources/private/build/js/vendor.js
                 -
                     type: minify:js
@@ -120,6 +122,13 @@ bldr:
                         - -r
                         - src/Bundle/CoreBundle/Resources/private/build/js
                         - src/Bundle/CoreBundle/Resources/public/
+                -
+                    type: exec
+                    executable: cp
+                    arguments:
+                        - -r
+                        - src/Bundle/CoreBundle/Resources/private/js/main.js
+                        - src/Bundle/CoreBundle/Resources/public/js/
                 -
                     type: exec
                     executable: cp

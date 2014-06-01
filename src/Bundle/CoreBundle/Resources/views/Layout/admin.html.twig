@@ -1,4 +1,6 @@
 {% trans_default_domain "symforium" %}
+{% set containerClass = 'container-fluid' %}
+{% set bodyType = 'admin' %}
 {% extends 'SymforiumCoreBundle:Layout:layout.html.twig' %}
 
 {% block title %}Symforium - Admin Panel{% endblock %}
@@ -6,10 +8,8 @@
 {% block stylesheets %}
     {{ parent() }}
     <style type="text/css">
-        section#content > .container, #navigation .container {
-            width: 100%;
-            padding-left: 50px;
-            padding-right: 50px;
+        #content {
+            padding-left: 200px;
         }
 
         #logo > a:after {
@@ -22,17 +22,16 @@
 {% endblock %}
 
 {% block menu %}
-    {#{ knp_menu_render('admin') }#}
     <ul class="nav navbar-nav navbar-right">
         <li><a href="{{ url('symforium_core_core_admin_index') }}">View Site</a></li>
     </ul>
 {% endblock %}
 
 {% block contentSection %}
-    <div class="admin-nav">
-        {{ knp_menu_render('admin') }}
-    </div>
-    <div class="container">
+    <nav id="admin-nav">
+        {{ knp_menu_render('admin', {'currentClass': 'active'}) }}
+    </nav>
+    <div id="admin-content">
         {% block content %}{% endblock %}
     </div>
 {% endblock %}

@@ -3650,8 +3650,12 @@ else
 
             //Wrap the element with the needed html
             $(this).wrap('<div class="wmd-panel" />');
-            $(this).before('<div id="wmd-button-bar-'+idAppend+'" class="wmd-button-bar" />');
-            $(this).after('<div id="wmd-preview-'+idAppend+'" class="wmd-preview" />');
+            $(this).before('<div class="row"><div id="wmd-button-bar-'+idAppend+'" class="wmd-button-bar" /></div>');
+            var wrapper = $('<div class="row"/>');
+            wrapper.append('<div class="col-xs-6"/>');
+            wrapper.insertAfter($(this));
+            $(this).appendTo(wrapper.find('.col-xs-6'));
+            wrapper.append('<div class="col-xs-6"><div id="wmd-preview-'+idAppend+'" class="wmd-preview" /></div>');
             $(this).addClass('wmd-input');
 
             //Setup help function

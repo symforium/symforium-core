@@ -5,6 +5,7 @@
         <title>{% block title %}Symforium{% endblock %}</title>
         {% block javascripts %}
             <script src="/bundles/symforiumcore/js/vendor.min.js"></script>
+            <script src="/bundles/symforiumcore/js/main.js"></script>
         {% endblock %}
         {% block stylesheets %}
             <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,400italic' rel='stylesheet' type='text/css'>
@@ -12,12 +13,12 @@
             <link rel="stylesheet" type="text/css" media="all" href="/bundles/symforiumcore/css/main.css" />
         {% endblock %}
     </head>
-    <body>
+    <body id="{{ bodyType }}">
         {% block body %}
             {% block navigation %}
                 <div id="navigation">
                     <nav class="navbar navbar-inverse navbar-fixed-top navbar-lg" role="navigation">
-                        <div class="container">
+                        <div class="{{ containerClass }}">
                             <div class="navbar-header">
                                 <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar-collapse">
                                     <span class="sr-only">Toggle navigation</span>
@@ -37,7 +38,7 @@
 
             <section id="content">
                 {% block contentSection %}
-                    <div class="container">
+                    <div class="{{ containerClass }}">
                         {% block content %}{% endblock %}
                     </div>
                 {% endblock %}

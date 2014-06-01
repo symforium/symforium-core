@@ -53,7 +53,7 @@ class Builder extends ContainerAware
     {
         $menu = $this->factory->createItem('root');
         $menu->setCurrentUri($request->getRequestUri());
-        $menu->setChildrenAttribute('class', 'nav navbar-nav');
+        $menu->setChildrenAttribute('class', 'nav nav-pills nav-stacked');
 
         $menu->addChild('Dashboard', array('route' => 'symforium_core_core_admin_index'))
             ->setAttribute('icon', 'dashboard');

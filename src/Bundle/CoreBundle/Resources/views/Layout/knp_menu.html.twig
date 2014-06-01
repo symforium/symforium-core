@@ -89,11 +89,11 @@
     {% endif %}
 
     {% if item.level != 0 %}
-        {% set classes = classes|merge(['dropdown-menu']) %}
+        {#% set classes = classes|merge(['dropdown-menu']) %#}
     {% endif %}
 
     {% if item.level == 1 and is_dropdown %}
-        {%- set classes = classes|merge(['multi-level']) -%}
+        {#%- set classes = classes|merge(['multi-level']) -%#}
     {% endif %}
 
     {%- set listAttributes = listAttributes|merge({'class': classes|join(' ')}) %}
@@ -114,14 +114,14 @@
 
 {% block dropdownElement %}
     {%- set classes = item.linkAttribute('class') is not empty ? [item.linkAttribute('class')] : [] %}
-    {%- set classes = classes|merge(['dropdown-toggle']) %}
+    {#%- set classes = classes|merge(['dropdown-toggle']) %#}
     {%- set attributes = item.linkAttributes %}
     {%- set attributes = attributes|merge({'class': classes|join(' ')}) %}
-    {%- set attributes = attributes|merge({'data-toggle': 'dropdown'}) %}
+    {#%- set attributes = attributes|merge({'data-toggle': 'dropdown'}) %#}
     <a href="#"{{ macros.attributes(attributes) }}>
         {{ block('label') }}
         {% if item.level == 1 %}
-            <b class="caret"></b>
+            <em class="fa fa-expand-o"></em>
         {% endif %}
     </a>
     <span class="dropdown-arrow"></span>
