@@ -1,0 +1,44 @@
+{% extends 'SymforiumCoreBundle:Layout:main.html.twig' %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+        $(function() {
+            var message = $('div#exception_message');
+            message.html(message.html().replace(/"([^"]*)"(?!>)/mg, '<strong>"$1"</strong>'));
+
+            var trace = $('div#trace');
+            trace.html(trace.html().replace(/^(#\d+)(.+)$/mg, '<p><strong>$1</strong>$2</p>'));
+        });
+    </script>
+{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <style type="text/css">
+        #trace {
+            height: 350px;
+            overflow-y: auto;
+        }
+        #trace p {
+            margin-bottom: 6px;
+            border-bottom: 1px solid rgba(200, 200, 200, 0.7);
+        }
+    </style>
+{% endblock %}
+
+{% block menu %}<p class="navbar-text">{{ exception.code > 0 ? ' ' ~ exception.code : '' }}Exception</p>{% endblock %}
+
+{% block content %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h1 class="panel-title">{{ type }}</h1>
+        </div>
+        <div class="panel-body">
+            <div class="well well-lg" id="exception_message">
+                {{ exception.getMessage()|raw }}
+            </div>
+
+            <div class="well well-sm" id="trace">{{ exception.getTraceAsString() }}</div>
+        </div>
+    </div>
+{% endblock %}
