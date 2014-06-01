@@ -122,6 +122,17 @@
         color: rgba(255, 255, 255, 1);
     }
 
+    .collapse {
+        > ul > li.current {
+            background: rgba(255, 255, 255, 0.2);
+
+            > a,
+            > a > i {
+                color: rgba(26, 188, 156, 1);
+            }
+        }
+    }
+
     a:hover > i {
         color: rgba(26, 188, 156, 1);
     }
@@ -178,6 +189,7 @@
 
             > li {
                 background: rgba(52, 73, 94, 1);
+                border-radius: 0;
             }
 
             > li:hover > a {
@@ -187,16 +199,14 @@
 
             > li:first-child,
             > li:first-child > a {
-                -webkit-border-radius: 5px 5px 0 0;
-                -moz-border-radius: 5px 5px 0 0;
-                border-radius: 5px 5px 0 0;
+                border-top-right-radius: 5px;
+                border-top-left-radius: 5px;
             }
 
             > li:last-child,
             > li:last-child > a {
-                -webkit-border-radius: 0 0 5px 5px;
-                -moz-border-radius: 0 0 5px 5px;
-                border-radius: 0 0 5px 5px;
+                border-bottom-right-radius: 5px;
+                border-bottom-left-radius: 5px;
             }
         }
     }
@@ -239,14 +249,17 @@ body {
 
 section#content > .container {
     padding: 45px 50px;
-    min-height: 500px;
-    border-radius: 0 0 3px 3px;
-    border: 1px solid rgba(236, 240, 241,1.0);
-    background: rgba(236, 240, 241,1.0);
 }
 
 
 .navbar-inverse .multi-level a {
     color: rgba(225, 228, 231, 1);
+}
 
+.container .row {
+    margin-bottom: 15px;
+}
+
+.container .row:last-child {
+    margin-bottom: 0;
 }

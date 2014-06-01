@@ -68,9 +68,9 @@ fos_user:
     firewall_name: main
     user_class: Symforium\Core\Bundle\CoreBundle\Entity\User
 
-#knp_menu:
-#    twig:
-#        template: SctrCmsMainBundle:Layout:menu.html.twig
+knp_menu:
+    twig:
+        template: SymforiumCoreBundle:Layout:knp_menu.html.twig
 
 #aequasi_cache:
 #    instances:

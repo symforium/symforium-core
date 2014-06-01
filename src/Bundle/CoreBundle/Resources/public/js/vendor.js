@@ -11140,6 +11140,686 @@ if (typeof jQuery === 'undefined') { throw new Error('Bootstrap\'s JavaScript re
 
 }(jQuery);
 ;
+!function($) {
+    var Selectpicker = function(element, options, e) {
+        if (e ) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        this.$element = $(element);
+        this.$newElement = null;
+        this.button = null;
+
+        //Merge defaults, options and data-attributes to make our options
+        this.options = $.extend({}, $.fn.selectpicker.defaults, this.$element.data(), typeof options == 'object' && options);
+
+        //If we have no title yet, check the attribute 'title' (this is missed by jq as its not a data-attribute
+        if(this.options.title==null)
+            this.options.title = this.$element.attr('title');
+
+        //Expose public methods
+        this.val = Selectpicker.prototype.val;
+        this.render = Selectpicker.prototype.render;
+        this.init();
+    };
+
+    Selectpicker.prototype = {
+
+        constructor: Selectpicker,
+
+        init: function (e) {
+            var _this = this;
+            this.$element.hide();
+            this.multiple = this.$element.prop('multiple');
+
+
+            var classList = this.$element.attr('class') !== undefined ? this.$element.attr('class').split(/\s+/) : '';
+            var id = this.$element.attr('id');
+            this.$element.after( this.createView() );
+            this.$newElement = this.$element.next('.select');
+            var select = this.$newElement;
+            var menu = this.$newElement.find('.dropdown-menu');
+            var menuArrow = this.$newElement.find('.dropdown-arrow');
+            var menuA = menu.find('li > a');
+            var liHeight = select.addClass('open').find('.dropdown-menu li > a').outerHeight();
+            select.removeClass('open');
+            var divHeight = menu.find('li .divider').outerHeight(true);
+            var selectOffset_top = this.$newElement.offset().top;
+            var size = 0;
+            var menuHeight = 0;
+            var selectHeight = this.$newElement.outerHeight();
+            this.button = this.$newElement.find('> button');
+            if (id !== undefined) {
+                this.button.attr('id', id);
+                $('label[for="' + id + '"]').click(function(){ select.find('button#'+id).focus(); })
+            }
+            for (var i = 0; i < classList.length; i++) {
+                if(classList[i] != 'selectpicker') {
+                    this.$newElement.addClass(classList[i]);
+                }
+            }
+            //If we are multiple, then add the show-tick class by default
+            if(this.multiple) {
+                 this.$newElement.addClass('select-multiple');
+            }
+            this.button.addClass(this.options.style);
+            menu.addClass(this.options.menuStyle);
+            menuArrow.addClass(function() {
+                if (_this.options.menuStyle) {
+                    return _this.options.menuStyle.replace('dropdown-', 'dropdown-arrow-');
+                }
+            });
+            this.checkDisabled();
+            this.checkTabIndex();
+            this.clickListener();
+            var menuPadding = parseInt(menu.css('padding-top')) + parseInt(menu.css('padding-bottom')) + parseInt(menu.css('border-top-width')) + parseInt(menu.css('border-bottom-width'));
+            if (this.options.size == 'auto') {
+                function getSize() {
+                    var selectOffset_top_scroll = selectOffset_top - $(window).scrollTop();
+                    var windowHeight = $(window).innerHeight();
+                    var menuExtras = menuPadding + parseInt(menu.css('margin-top')) + parseInt(menu.css('margin-bottom')) + 2;
+                    var selectOffset_bot = windowHeight - selectOffset_top_scroll - selectHeight - menuExtras;
+                    menuHeight = selectOffset_bot;
+                    if (select.hasClass('dropup')) {
+                        menuHeight = selectOffset_top_scroll - menuExtras;
+                    }
+                    menu.css({'max-height' : menuHeight + 'px', 'overflow-y' : 'auto', 'min-height' : liHeight*3 + 'px'});
+            }
+                getSize();
+                $(window).resize(getSize);
+                $(window).scroll(getSize);
+                if (window.MutationObserver) {
+                    new MutationObserver(getSize).observe(this.$element.get(0), {
+                        childList: true
+                    });
+                } else {
+                    this.$element.bind('DOMNodeInserted', getSize);
+                }
+            } else if (this.options.size && this.options.size != 'auto' && menu.find('li').length > this.options.size) {
+                var optIndex = menu.find("li > *").filter(':not(.divider)').slice(0,this.options.size).last().parent().index();
+                var divLength = menu.find("li").slice(0,optIndex + 1).find('.divider').length;
+                menuHeight = liHeight*this.options.size + divLength*divHeight + menuPadding;
+                menu.css({'max-height' : menuHeight + 'px', 'overflow-y' : 'scroll'});
+            }
+
+            // Listen for updates to the DOM and re render... (Use Mutation Observer when availiable)
+            if (window.MutationObserver) {
+                new MutationObserver($.proxy(this.reloadLi, this)).observe(this.$element.get(0), {
+                    childList: true
+                });
+            } else {
+                this.$element.bind('DOMNodeInserted', $.proxy(this.reloadLi, this));
+            }
+
+            this.render();
+        },
+
+        createDropdown: function() {
+            var drop =
+                "<div class='btn-group select'>" +                    
+                    "<button class='btn dropdown-toggle clearfix' data-toggle='dropdown'>" +
+                        "<span class='filter-option pull-left'></span>&nbsp;" +
+                        "<span class='caret'></span>" +
+                    "</button>" +
+                    "<span class='dropdown-arrow'></span>" +
+                    "<ul class='dropdown-menu' role='menu'>" +
+                    "</ul>" +
+                "</div>";
+
+            return $(drop);
+        },
+
+
+        createView: function() {
+            var $drop = this.createDropdown();
+            var $li = this.createLi();
+            $drop.find('ul').append($li);
+            return $drop;
+        },
+
+        reloadLi: function() {
+            //Remove all children.
+            this.destroyLi();
+            //Re build
+            $li = this.createLi();
+            this.$newElement.find('ul').append( $li );
+            //render view
+            this.render();
+        },
+
+        destroyLi:function() {
+            this.$newElement.find('li').remove();
+        },
+
+        createLi: function() {
+
+            var _this = this;
+            var _li = [];
+            var _liA = [];
+            var _liHtml = '';
+
+            this.$element.find('option').each(function(){
+                _li.push($(this).text());
+            });
+
+            this.$element.find('option').each(function(index) {
+                //Get the class and text for the option
+                var optionClass = $(this).attr("class") !== undefined ? $(this).attr("class") : '';
+               	var text =  $(this).text();
+               	var subtext = $(this).data('subtext') !== undefined ? '<small class="muted">'+$(this).data('subtext')+'</small>' : '';
+
+                //Append any subtext to the main text.
+                text+=subtext;
+
+                if ($(this).parent().is('optgroup') && $(this).data('divider') != true) {
+                    if ($(this).index() == 0) {
+                        //Get the opt group label
+                        var label = $(this).parent().attr('label');
+                        var labelSubtext = $(this).parent().data('subtext') !== undefined ? '<small class="muted">'+$(this).parent().data('subtext')+'</small>' : '';
+                        label += labelSubtext;
+
+                        if ($(this)[0].index != 0) {
+                            _liA.push(
+                                '<div class="divider"></div>'+
+                                '<dt>'+label+'</dt>'+ 
+                                _this.createA(text, "opt " + optionClass )
+                                );
+                        } else {
+                            _liA.push(
+                                '<dt>'+label+'</dt>'+ 
+                                _this.createA(text, "opt " + optionClass ));
+                        }
+                    } else {
+                         _liA.push( _this.createA(text, "opt " + optionClass )  );
+                    }
+                } else if ($(this).data('divider') == true) {
+                    _liA.push('<div class="divider"></div>');
+                } else if ($(this).data('hidden') == true) {
+	                _liA.push('');
+                } else {
+                    _liA.push( _this.createA(text, optionClass ) );
+                }
+            });
+
+            if (_li.length > 0) {
+                for (var i = 0; i < _li.length; i++) {
+                    var $option = this.$element.find('option').eq(i);
+                    _liHtml += "<li rel=" + i + ">" + _liA[i] + "</li>";
+                }
+            }
+
+            //If we dont have a selected item, and we dont have a title, select the first element so something is set in the button
+            if(this.$element.find('option:selected').length==0 && !_this.options.title) {
+                this.$element.find('option').eq(0).prop('selected', true).attr('selected', 'selected');
+            }
+
+            return $(_liHtml);
+        },
+
+        createA:function(test, classes) {
+         return '<a tabindex="-1" href="#" class="'+classes+'">' +
+                 '<span class="pull-left">' + test + '</span>' +
+                 '</a>';
+
+        },
+
+         render:function() {
+            var _this = this;
+
+            //Set width of select
+             if (this.options.width == 'auto') {
+                 var ulWidth = this.$newElement.find('.dropdown-menu').css('width');
+                 this.$newElement.css('width',ulWidth);
+             } else if (this.options.width && this.options.width != 'auto') {
+                 this.$newElement.css('width',this.options.width);
+             }
+
+            //Update the LI to match the SELECT
+            this.$element.find('option').each(function(index) {
+               _this.setDisabled(index, $(this).is(':disabled') || $(this).parent().is(':disabled') );
+               _this.setSelected(index, $(this).is(':selected') );
+            });
+
+
+
+            var selectedItems = this.$element.find('option:selected').map(function(index,value) {
+                if($(this).attr('title')!=undefined) {
+                    return $(this).attr('title');
+                } else {
+                    return $(this).text();
+                }
+            }).toArray();
+
+            //Convert all the values into a comma delimited string    
+            var title = selectedItems.join(", ");
+
+            //If this is multi select, and the selectText type is count, the show 1 of 2 selected etc..                    
+            if(_this.multiple && _this.options.selectedTextFormat.indexOf('count') > -1) {
+                var max = _this.options.selectedTextFormat.split(">");
+                if( (max.length>1 && selectedItems.length > max[1]) || (max.length==1 && selectedItems.length>=2)) {
+                    title = selectedItems.length +' of ' + this.$element.find('option').length + ' selected';
+                }
+             }  
+            
+            //If we dont have a title, then use the default, or if nothing is set at all, use the not selected text
+            if(!title) {
+                title = _this.options.title != undefined ? _this.options.title : _this.options.noneSelectedText;    
+            }
+            
+            this.$element.next('.select').find('.filter-option').html( title );
+	    },
+	    
+        
+        
+        setSelected:function(index, selected) {
+            if(selected) {
+                this.$newElement.find('li').eq(index).addClass('selected');
+            } else {
+                this.$newElement.find('li').eq(index).removeClass('selected');
+            }
+        },
+        
+        setDisabled:function(index, disabled) {
+            if(disabled) {
+                this.$newElement.find('li').eq(index).addClass('disabled');
+            } else {
+                this.$newElement.find('li').eq(index).removeClass('disabled');
+            }
+        },
+       
+        checkDisabled: function() {
+            if (this.$element.is(':disabled')) {
+                this.button.addClass('disabled');
+                this.button.click(function(e) {
+                    e.preventDefault();
+                });
+            }
+        },
+		
+		checkTabIndex: function() {
+			if (this.$element.is('[tabindex]')) {
+				var tabindex = this.$element.attr("tabindex");
+				this.button.attr('tabindex', tabindex);
+			}
+		},
+		
+		clickListener: function() {
+            var _this = this;
+            
+            $('body').on('touchstart.dropdown', '.dropdown-menu', function (e) { e.stopPropagation(); });
+            
+           
+            
+            this.$newElement.on('click', 'li a', function(e){
+                var clickedIndex = $(this).parent().index(),
+                    $this = $(this).parent(),
+                    $select = $this.parents('.select');
+                
+                
+                //Dont close on multi choice menu    
+                if(_this.multiple) {
+                    e.stopPropagation();
+                }
+                
+                e.preventDefault();
+                
+                //Dont run if we have been disabled
+                if ($select.prev('select').not(':disabled') && !$(this).parent().hasClass('disabled')){
+                    //Deselect all others if not multi select box
+                    if (!_this.multiple) {
+                        $select.prev('select').find('option').removeAttr('selected');
+                        $select.prev('select').find('option').eq(clickedIndex).prop('selected', true).attr('selected', 'selected');
+                    } 
+                    //Else toggle the one we have chosen if we are multi selet.
+                    else {
+                        var selected = $select.prev('select').find('option').eq(clickedIndex).prop('selected');
+                        
+                        if(selected) {
+                            $select.prev('select').find('option').eq(clickedIndex).removeAttr('selected');
+                        } else {
+                            $select.prev('select').find('option').eq(clickedIndex).prop('selected', true).attr('selected', 'selected');
+                        }
+                    }
+                    
+                    
+                    $select.find('.filter-option').html($this.text());
+                    $select.find('button').focus();
+
+                    // Trigger select 'change'
+                    $select.prev('select').trigger('change');
+                }
+
+            });
+            
+           this.$newElement.on('click', 'li.disabled a, li dt, li .divider', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $select = $(this).parent().parents('.select');
+                $select.find('button').focus();
+            });
+
+            this.$element.on('change', function(e) {
+                _this.render();
+            });
+        },
+        
+        val:function(value) {
+            
+            if(value!=undefined) {
+                this.$element.val( value );
+                
+                this.$element.trigger('change');
+                return this.$element;
+            } else {
+                return this.$element.val();
+            }
+        }
+
+    };
+
+    $.fn.selectpicker = function(option, event) {
+       //get the args of the outer function..
+       var args = arguments;
+       var value;
+       var chain = this.each(function () {
+            var $this = $(this),
+                data = $this.data('selectpicker'),
+                options = typeof option == 'object' && option;
+            
+            if (!data) {
+            	$this.data('selectpicker', (data = new Selectpicker(this, options, event)));
+            } else {
+            	for(var i in option) {
+            		data[i]=option[i];
+            	}
+            }
+            
+            if (typeof option == 'string') {
+                //Copy the value of option, as once we shift the arguments
+                //it also shifts the value of option.
+                property = option;
+                if(data[property] instanceof Function) {
+                    [].shift.apply(args);
+                    value = data[property].apply(data, args);
+                } else {
+                    value = data[property];
+                }
+            }
+        });
+        
+        if(value!=undefined) {
+            return value;
+        } else {
+            return chain;
+        } 
+    };
+
+    $.fn.selectpicker.defaults = {
+        style: null,
+        size: 'auto',
+        title: null,
+        selectedTextFormat : 'values',
+        noneSelectedText : 'Nothing selected',
+        width: null,
+        menuStyle: null,
+        toggleSize: null
+    }
+
+}(window.jQuery);
+;
+/* ============================================================
+ * bootstrapSwitch v1.3 by Larentis Mattia @spiritualGuru
+ * http://www.larentis.eu/switch/
+ * ============================================================
+ * Licensed under the Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * ============================================================ */
+
+!function ($) {
+  "use strict";
+
+  $.fn['bootstrapSwitch'] = function (method) {
+    var methods = {
+      init: function () {
+        return this.each(function () {
+            var $element = $(this)
+              , $div
+              , $switchLeft
+              , $switchRight
+              , $label
+              , myClasses = ""
+              , classes = $element.attr('class')
+              , color
+              , moving
+              , onLabel = "ON"
+              , offLabel = "OFF"
+              , icon = false;
+
+            $.each(['switch-mini', 'switch-small', 'switch-large'], function (i, el) {
+              if (classes.indexOf(el) >= 0)
+                myClasses = el;
+            });
+
+            $element.addClass('has-switch');
+
+                console.log($element.data());
+            if ($element.data('on') !== undefined)
+              color = "switch-" + $element.data('on');
+
+            if ($element.data('on-label') !== undefined)
+              onLabel = $element.data('on-label');
+
+            if ($element.data('off-label') !== undefined)
+              offLabel = $element.data('off-label');
+
+            if ($element.data('icon') !== undefined)
+              icon = $element.data('icon');
+
+            $switchLeft = $('<span>')
+              .addClass("switch-left")
+              .addClass(myClasses)
+              .addClass(color)
+              .html(onLabel);
+
+            color = '';
+            if ($element.data('off') !== undefined)
+              color = "switch-" + $element.data('off');
+
+            $switchRight = $('<span>')
+              .addClass("switch-right")
+              .addClass(myClasses)
+              .addClass(color)
+              .html(offLabel);
+
+            $label = $('<label>')
+              .html("&nbsp;")
+              .addClass(myClasses)
+              .attr('for', $element.find('input').attr('id'));
+
+            if (icon) {
+              $label.html('<i class="' + icon + '"></i>');
+            }
+
+            $div = $element.find(':checkbox').wrap($('<div>')).parent().data('animated', false);
+
+            if ($element.data('animated') !== false)
+              $div.addClass('switch-animate').data('animated', true);
+
+            $div
+              .append($switchLeft)
+              .append($label)
+              .append($switchRight);
+
+            $element.find('>div').addClass(
+              $element.find('input').is(':checked') ? 'switch-on' : 'switch-off'
+            );
+
+            if ($element.find('input').is(':disabled'))
+              $(this).addClass('deactivate');
+
+            var changeStatus = function ($this) {
+              $this.siblings('label').trigger('mousedown').trigger('mouseup').trigger('click');
+            };
+
+            $element.on('keydown', function (e) {
+              if (e.keyCode === 32) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                changeStatus($(e.target).find('span:first'));
+              }
+            });
+
+            $switchLeft.on('click', function (e) {
+              changeStatus($(this));
+            });
+
+            $switchRight.on('click', function (e) {
+              changeStatus($(this));
+            });
+
+            $element.find('input').on('change', function (e) {
+              var $this = $(this)
+                , $element = $this.parent()
+                , thisState = $this.is(':checked')
+                , state = $element.is('.switch-off');
+
+              e.preventDefault();
+
+              $element.css('left', '');
+
+              if (state === thisState) {
+
+                if (thisState)
+                  $element.removeClass('switch-off').addClass('switch-on');
+                else $element.removeClass('switch-on').addClass('switch-off');
+
+                if ($element.data('animated') !== false)
+                  $element.addClass("switch-animate");
+
+                $element.parent().trigger('switch-change', {'el': $this, 'value': thisState})
+              }
+            });
+
+            $element.find('label').on('mousedown touchstart', function (e) {
+              var $this = $(this);
+              moving = false;
+
+              e.preventDefault();
+              e.stopImmediatePropagation();
+
+              $this.closest('div').removeClass('switch-animate');
+
+              if ($this.closest('.has-switch').is('.deactivate'))
+                $this.unbind('click');
+              else {
+                $this.on('mousemove touchmove', function (e) {
+                  var $element = $(this).closest('.switch')
+                    , relativeX = (e.pageX || e.originalEvent.targetTouches[0].pageX) - $element.offset().left
+                    , percent = (relativeX / $element.width()) * 100
+                    , left = 25
+                    , right = 75;
+
+                  moving = true;
+
+                  if (percent < left)
+                    percent = left;
+                  else if (percent > right)
+                    percent = right;
+
+                  $element.find('>div').css('left', (percent - right) + "%")
+                });
+
+                $this.on('click touchend', function (e) {
+                  var $this = $(this)
+                    , $target = $(e.target)
+                    , $myCheckBox = $target.siblings('input');
+
+                  e.stopImmediatePropagation();
+                  e.preventDefault();
+
+                  $this.unbind('mouseleave');
+
+                  if (moving)
+                    $myCheckBox.prop('checked', !(parseInt($this.parent().css('left')) < -25));
+                  else $myCheckBox.prop("checked", !$myCheckBox.is(":checked"));
+
+                  moving = false;
+                  $myCheckBox.trigger('change');
+                });
+
+                $this.on('mouseleave', function (e) {
+                  var $this = $(this)
+                    , $myCheckBox = $this.siblings('input');
+
+                  e.preventDefault();
+                  e.stopImmediatePropagation();
+
+                  $this.unbind('mouseleave');
+                  $this.trigger('mouseup');
+
+                  $myCheckBox.prop('checked', !(parseInt($this.parent().css('left')) < -25)).trigger('change');
+                });
+
+                $this.on('mouseup', function (e) {
+                  e.stopImmediatePropagation();
+                  e.preventDefault();
+
+                  $(this).unbind('mousemove');
+                });
+              }
+            });
+          }
+        );
+      },
+      toggleActivation: function () {
+        $(this).toggleClass('deactivate');
+      },
+      isActive: function () {
+        return !$(this).hasClass('deactivate');
+      },
+      setActive: function (active) {
+        if (active)
+          $(this).removeClass('deactivate');
+        else $(this).addClass('deactivate');
+      },
+      toggleState: function (skipOnChange) {
+        var $input = $(this).find('input:checkbox');
+        $input.prop('checked', !$input.is(':checked')).trigger('change', skipOnChange);
+      },
+      setState: function (value, skipOnChange) {
+        $(this).find('input:checkbox').prop('checked', value).trigger('change', skipOnChange);
+      },
+      status: function () {
+        return $(this).find('input:checkbox').is(':checked');
+      },
+      destroy: function () {
+        var $div = $(this).find('div')
+          , $checkbox;
+
+        $div.find(':not(input:checkbox)').remove();
+
+        $checkbox = $div.children();
+        $checkbox.unwrap().unwrap();
+
+        $checkbox.unbind('change');
+
+        return $checkbox;
+      }
+    };
+
+    if (methods[method])
+      return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+    else if (typeof method === 'object' || !method)
+      return methods.init.apply(this, arguments);
+    else
+      $.error('Method ' + method + ' does not exist!');
+  };
+}(jQuery);
+
+$(function () {
+  $('.switch')['bootstrapSwitch']();
+});
+;
 /* =============================================================
  * flatui-checkbox v0.0.3
  * ============================================================ */
@@ -11391,3 +12071,3945 @@ if (typeof jQuery === 'undefined') { throw new Error('Bootstrap\'s JavaScript re
   });
 
 }(window.jQuery);
+var Markdown;
+
+if (typeof exports === "object" && typeof require === "function") // we're in a CommonJS (e.g. Node.js) module
+    Markdown = exports;
+else
+    Markdown = {};
+
+// The following text is included for historical reasons, but should
+// be taken with a pinch of salt; it's not all true anymore.
+
+//
+// Wherever possible, Showdown is a straight, line-by-line port
+// of the Perl version of Markdown.
+//
+// This is not a normal parser design; it's basically just a
+// series of string substitutions.  It's hard to read and
+// maintain this way,  but keeping Showdown close to the original
+// design makes it easier to port new features.
+//
+// More importantly, Showdown behaves like markdown.pl in most
+// edge cases.  So web applications can do client-side preview
+// in Javascript, and then build identical HTML on the server.
+//
+// This port needs the new RegExp functionality of ECMA 262,
+// 3rd Edition (i.e. Javascript 1.5).  Most modern web browsers
+// should do fine.  Even with the new regular expression features,
+// We do a lot of work to emulate Perl's regex functionality.
+// The tricky changes in this file mostly have the "attacklab:"
+// label.  Major or self-explanatory changes don't.
+//
+// Smart diff tools like Araxis Merge will be able to match up
+// this file with markdown.pl in a useful way.  A little tweaking
+// helps: in a copy of markdown.pl, replace "#" with "//" and
+// replace "$text" with "text".  Be sure to ignore whitespace
+// and line endings.
+//
+
+
+//
+// Usage:
+//
+//   var text = "Markdown *rocks*.";
+//
+//   var converter = new Markdown.Converter();
+//   var html = converter.makeHtml(text);
+//
+//   alert(html);
+//
+// Note: move the sample code to the bottom of this
+// file before uncommenting it.
+//
+
+(function () {
+
+    function identity(x) { return x; }
+    function returnFalse(x) { return false; }
+
+    function HookCollection() { }
+
+    HookCollection.prototype = {
+
+        chain: function (hookname, func) {
+            var original = this[hookname];
+            if (!original)
+                throw new Error("unknown hook " + hookname);
+
+            if (original === identity)
+                this[hookname] = func;
+            else
+                this[hookname] = function (x) { return func(original(x)); }
+        },
+        set: function (hookname, func) {
+            if (!this[hookname])
+                throw new Error("unknown hook " + hookname);
+            this[hookname] = func;
+        },
+        addNoop: function (hookname) {
+            this[hookname] = identity;
+        },
+        addFalse: function (hookname) {
+            this[hookname] = returnFalse;
+        }
+    };
+
+    Markdown.HookCollection = HookCollection;
+
+    // g_urls and g_titles allow arbitrary user-entered strings as keys. This
+    // caused an exception (and hence stopped the rendering) when the user entered
+    // e.g. [push] or [__proto__]. Adding a prefix to the actual key prevents this
+    // (since no builtin property starts with "s_"). See
+    // http://meta.stackoverflow.com/questions/64655/strange-wmd-bug
+    // (granted, switching from Array() to Object() alone would have left only __proto__
+    // to be a problem)
+    function SaveHash() { }
+    SaveHash.prototype = {
+        set: function (key, value) {
+            this["s_" + key] = value;
+        },
+        get: function (key) {
+            return this["s_" + key];
+        }
+    };
+
+    Markdown.Converter = function () {
+        var pluginHooks = this.hooks = new HookCollection();
+        pluginHooks.addNoop("plainLinkText");  // given a URL that was encountered by itself (without markup), should return the link text that's to be given to this link
+        pluginHooks.addNoop("preConversion");  // called with the orignal text as given to makeHtml. The result of this plugin hook is the actual markdown source that will be cooked
+        pluginHooks.addNoop("postConversion"); // called with the final cooked HTML code. The result of this plugin hook is the actual output of makeHtml
+
+        //
+        // Private state of the converter instance:
+        //
+
+        // Global hashes, used by various utility routines
+        var g_urls;
+        var g_titles;
+        var g_html_blocks;
+
+        // Used to track when we're inside an ordered or unordered list
+        // (see _ProcessListItems() for details):
+        var g_list_level;
+
+        this.makeHtml = function (text) {
+
+            //
+            // Main function. The order in which other subs are called here is
+            // essential. Link and image substitutions need to happen before
+            // _EscapeSpecialCharsWithinTagAttributes(), so that any *'s or _'s in the <a>
+            // and <img> tags get encoded.
+            //
+
+            // This will only happen if makeHtml on the same converter instance is called from a plugin hook.
+            // Don't do that.
+            if (g_urls)
+                throw new Error("Recursive call to converter.makeHtml");
+
+            // Create the private state objects.
+            g_urls = new SaveHash();
+            g_titles = new SaveHash();
+            g_html_blocks = [];
+            g_list_level = 0;
+
+            text = pluginHooks.preConversion(text);
+
+            // attacklab: Replace ~ with ~T
+            // This lets us use tilde as an escape char to avoid md5 hashes
+            // The choice of character is arbitray; anything that isn't
+            // magic in Markdown will work.
+            text = text.replace(/~/g, "~T");
+
+            // attacklab: Replace $ with ~D
+            // RegExp interprets $ as a special character
+            // when it's in a replacement string
+            text = text.replace(/\$/g, "~D");
+
+            // Standardize line endings
+            text = text.replace(/\r\n/g, "\n"); // DOS to Unix
+            text = text.replace(/\r/g, "\n"); // Mac to Unix
+
+            // Make sure text begins and ends with a couple of newlines:
+            text = "\n\n" + text + "\n\n";
+
+            // Convert all tabs to spaces.
+            text = _Detab(text);
+
+            // Strip any lines consisting only of spaces and tabs.
+            // This makes subsequent regexen easier to write, because we can
+            // match consecutive blank lines with /\n+/ instead of something
+            // contorted like /[ \t]*\n+/ .
+            text = text.replace(/^[ \t]+$/mg, "");
+
+            // Turn block-level HTML blocks into hash entries
+            text = _HashHTMLBlocks(text);
+
+            // Strip link definitions, store in hashes.
+            text = _StripLinkDefinitions(text);
+
+            text = _RunBlockGamut(text);
+
+            text = _UnescapeSpecialChars(text);
+
+            // attacklab: Restore dollar signs
+            text = text.replace(/~D/g, "$$");
+
+            // attacklab: Restore tildes
+            text = text.replace(/~T/g, "~");
+
+            text = pluginHooks.postConversion(text);
+
+            g_html_blocks = g_titles = g_urls = null;
+
+            return text;
+        };
+
+        function _StripLinkDefinitions(text) {
+            //
+            // Strips link definitions from text, stores the URLs and titles in
+            // hash references.
+            //
+
+            // Link defs are in the form: ^[id]: url "optional title"
+
+            /*
+             text = text.replace(/
+             ^[ ]{0,3}\[(.+)\]:  // id = $1  attacklab: g_tab_width - 1
+             [ \t]*
+             \n?                 // maybe *one* newline
+             [ \t]*
+             <?(\S+?)>?          // url = $2
+             (?=\s|$)            // lookahead for whitespace instead of the lookbehind removed below
+             [ \t]*
+             \n?                 // maybe one newline
+             [ \t]*
+             (                   // (potential) title = $3
+             (\n*)           // any lines skipped = $4 attacklab: lookbehind removed
+             [ \t]+
+             ["(]
+             (.+?)           // title = $5
+             [")]
+             [ \t]*
+             )?                  // title is optional
+             (?:\n+|$)
+             /gm, function(){...});
+             */
+
+            text = text.replace(/^[ ]{0,3}\[(.+)\]:[ \t]*\n?[ \t]*<?(\S+?)>?(?=\s|$)[ \t]*\n?[ \t]*((\n*)["(](.+?)[")][ \t]*)?(?:\n+)/gm,
+                function (wholeMatch, m1, m2, m3, m4, m5) {
+                    m1 = m1.toLowerCase();
+                    g_urls.set(m1, _EncodeAmpsAndAngles(m2));  // Link IDs are case-insensitive
+                    if (m4) {
+                        // Oops, found blank lines, so it's not a title.
+                        // Put back the parenthetical statement we stole.
+                        return m3;
+                    } else if (m5) {
+                        g_titles.set(m1, m5.replace(/"/g, "&quot;"));
+                    }
+
+                    // Completely remove the definition from the text
+                    return "";
+                }
+            );
+
+            return text;
+        }
+
+        function _HashHTMLBlocks(text) {
+
+            // Hashify HTML blocks:
+            // We only want to do this for block-level HTML tags, such as headers,
+            // lists, and tables. That's because we still want to wrap <p>s around
+            // "paragraphs" that are wrapped in non-block-level tags, such as anchors,
+            // phrase emphasis, and spans. The list of tags we're looking for is
+            // hard-coded:
+            var block_tags_a = "p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|ins|del"
+            var block_tags_b = "p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math"
+
+            // First, look for nested blocks, e.g.:
+            //   <div>
+            //     <div>
+            //     tags for inner block must be indented.
+            //     </div>
+            //   </div>
+            //
+            // The outermost tags must start at the left margin for this to match, and
+            // the inner nested divs must be indented.
+            // We need to do this before the next, more liberal match, because the next
+            // match will start at the first `<div>` and stop at the first `</div>`.
+
+            // attacklab: This regex can be expensive when it fails.
+
+            /*
+             text = text.replace(/
+             (                       // save in $1
+             ^                   // start of line  (with /m)
+             <($block_tags_a)    // start tag = $2
+             \b                  // word break
+             // attacklab: hack around khtml/pcre bug...
+             [^\r]*?\n           // any number of lines, minimally matching
+             </\2>               // the matching end tag
+             [ \t]*              // trailing spaces/tabs
+             (?=\n+)             // followed by a newline
+             )                       // attacklab: there are sentinel newlines at end of document
+             /gm,function(){...}};
+             */
+            text = text.replace(/^(<(p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math|ins|del)\b[^\r]*?\n<\/\2>[ \t]*(?=\n+))/gm, hashElement);
+
+            //
+            // Now match more liberally, simply from `\n<tag>` to `</tag>\n`
+            //
+
+            /*
+             text = text.replace(/
+             (                       // save in $1
+             ^                   // start of line  (with /m)
+             <($block_tags_b)    // start tag = $2
+             \b                  // word break
+             // attacklab: hack around khtml/pcre bug...
+             [^\r]*?             // any number of lines, minimally matching
+             .*</\2>             // the matching end tag
+             [ \t]*              // trailing spaces/tabs
+             (?=\n+)             // followed by a newline
+             )                       // attacklab: there are sentinel newlines at end of document
+             /gm,function(){...}};
+             */
+            text = text.replace(/^(<(p|div|h[1-6]|blockquote|pre|table|dl|ol|ul|script|noscript|form|fieldset|iframe|math)\b[^\r]*?.*<\/\2>[ \t]*(?=\n+)\n)/gm, hashElement);
+
+            // Special case just for <hr />. It was easier to make a special case than
+            // to make the other regex more complicated.
+
+            /*
+             text = text.replace(/
+             \n                  // Starting after a blank line
+             [ ]{0,3}
+             (                   // save in $1
+             (<(hr)          // start tag = $2
+             \b          // word break
+             ([^<>])*?
+             \/?>)           // the matching end tag
+             [ \t]*
+             (?=\n{2,})      // followed by a blank line
+             )
+             /g,hashElement);
+             */
+            text = text.replace(/\n[ ]{0,3}((<(hr)\b([^<>])*?\/?>)[ \t]*(?=\n{2,}))/g, hashElement);
+
+            // Special case for standalone HTML comments:
+
+            /*
+             text = text.replace(/
+             \n\n                                            // Starting after a blank line
+             [ ]{0,3}                                        // attacklab: g_tab_width - 1
+             (                                               // save in $1
+             <!
+             (--(?:|(?:[^>-]|-[^>])(?:[^-]|-[^-])*)--)   // see http://www.w3.org/TR/html-markup/syntax.html#comments and http://meta.stackoverflow.com/q/95256
+             >
+             [ \t]*
+             (?=\n{2,})                                  // followed by a blank line
+             )
+             /g,hashElement);
+             */
+            text = text.replace(/\n\n[ ]{0,3}(<!(--(?:|(?:[^>-]|-[^>])(?:[^-]|-[^-])*)--)>[ \t]*(?=\n{2,}))/g, hashElement);
+
+            // PHP and ASP-style processor instructions (<?...?> and <%...%>)
+
+            /*
+             text = text.replace(/
+             (?:
+             \n\n            // Starting after a blank line
+             )
+             (                   // save in $1
+             [ ]{0,3}        // attacklab: g_tab_width - 1
+             (?:
+             <([?%])     // $2
+             [^\r]*?
+             \2>
+             )
+             [ \t]*
+             (?=\n{2,})      // followed by a blank line
+             )
+             /g,hashElement);
+             */
+            text = text.replace(/(?:\n\n)([ ]{0,3}(?:<([?%])[^\r]*?\2>)[ \t]*(?=\n{2,}))/g, hashElement);
+
+            return text;
+        }
+
+        function hashElement(wholeMatch, m1) {
+            var blockText = m1;
+
+            // Undo double lines
+            blockText = blockText.replace(/^\n+/, "");
+
+            // strip trailing blank lines
+            blockText = blockText.replace(/\n+$/g, "");
+
+            // Replace the element text with a marker ("~KxK" where x is its key)
+            blockText = "\n\n~K" + (g_html_blocks.push(blockText) - 1) + "K\n\n";
+
+            return blockText;
+        }
+
+        function _RunBlockGamut(text, doNotUnhash) {
+            //
+            // These are all the transformations that form block-level
+            // tags like paragraphs, headers, and list items.
+            //
+            text = _DoHeaders(text);
+
+            // Do Horizontal Rules:
+            var replacement = "<hr />\n";
+            text = text.replace(/^[ ]{0,2}([ ]?\*[ ]?){3,}[ \t]*$/gm, replacement);
+            text = text.replace(/^[ ]{0,2}([ ]?-[ ]?){3,}[ \t]*$/gm, replacement);
+            text = text.replace(/^[ ]{0,2}([ ]?_[ ]?){3,}[ \t]*$/gm, replacement);
+
+            text = _DoLists(text);
+            text = _DoCodeBlocks(text);
+            text = _DoBlockQuotes(text);
+
+            // We already ran _HashHTMLBlocks() before, in Markdown(), but that
+            // was to escape raw HTML in the original Markdown source. This time,
+            // we're escaping the markup we've just created, so that we don't wrap
+            // <p> tags around block-level tags.
+            text = _HashHTMLBlocks(text);
+            text = _FormParagraphs(text, doNotUnhash);
+
+            return text;
+        }
+
+        function _RunSpanGamut(text) {
+            //
+            // These are all the transformations that occur *within* block-level
+            // tags like paragraphs, headers, and list items.
+            //
+
+            text = _DoCodeSpans(text);
+            text = _EscapeSpecialCharsWithinTagAttributes(text);
+            text = _EncodeBackslashEscapes(text);
+
+            // Process anchor and image tags. Images must come first,
+            // because ![foo][f] looks like an anchor.
+            text = _DoImages(text);
+            text = _DoAnchors(text);
+
+            // Make links out of things like `<http://example.com/>`
+            // Must come after _DoAnchors(), because you can use < and >
+            // delimiters in inline links like [this](<url>).
+            text = _DoAutoLinks(text);
+
+            text = text.replace(/~P/g, "://"); // put in place to prevent autolinking; reset now
+
+            text = _EncodeAmpsAndAngles(text);
+            text = _DoItalicsAndBold(text);
+
+            // Do hard breaks:
+            text = text.replace(/  +\n/g, " <br>\n");
+
+            return text;
+        }
+
+        function _EscapeSpecialCharsWithinTagAttributes(text) {
+            //
+            // Within tags -- meaning between < and > -- encode [\ ` * _] so they
+            // don't conflict with their use in Markdown for code, italics and strong.
+            //
+
+            // Build a regex to find HTML tags and comments.  See Friedl's
+            // "Mastering Regular Expressions", 2nd Ed., pp. 200-201.
+
+            // SE: changed the comment part of the regex
+
+            var regex = /(<[a-z\/!$]("[^"]*"|'[^']*'|[^'">])*>|<!(--(?:|(?:[^>-]|-[^>])(?:[^-]|-[^-])*)--)>)/gi;
+
+            text = text.replace(regex, function (wholeMatch) {
+                var tag = wholeMatch.replace(/(.)<\/?code>(?=.)/g, "$1`");
+                tag = escapeCharacters(tag, wholeMatch.charAt(1) == "!" ? "\\`*_/" : "\\`*_"); // also escape slashes in comments to prevent autolinking there -- http://meta.stackoverflow.com/questions/95987
+                return tag;
+            });
+
+            return text;
+        }
+
+        function _DoAnchors(text) {
+            //
+            // Turn Markdown link shortcuts into XHTML <a> tags.
+            //
+            //
+            // First, handle reference-style links: [link text] [id]
+            //
+
+            /*
+             text = text.replace(/
+             (                           // wrap whole match in $1
+             \[
+             (
+             (?:
+             \[[^\]]*\]      // allow brackets nested one level
+             |
+             [^\[]           // or anything else
+             )*
+             )
+             \]
+
+             [ ]?                    // one optional space
+             (?:\n[ ]*)?             // one optional newline followed by spaces
+
+             \[
+             (.*?)                   // id = $3
+             \]
+             )
+             ()()()()                    // pad remaining backreferences
+             /g, writeAnchorTag);
+             */
+            text = text.replace(/(\[((?:\[[^\]]*\]|[^\[\]])*)\][ ]?(?:\n[ ]*)?\[(.*?)\])()()()()/g, writeAnchorTag);
+
+            //
+            // Next, inline-style links: [link text](url "optional title")
+            //
+
+            /*
+             text = text.replace(/
+             (                           // wrap whole match in $1
+             \[
+             (
+             (?:
+             \[[^\]]*\]      // allow brackets nested one level
+             |
+             [^\[\]]         // or anything else
+             )*
+             )
+             \]
+             \(                      // literal paren
+             [ \t]*
+             ()                      // no id, so leave $3 empty
+             <?(                     // href = $4
+             (?:
+             \([^)]*\)       // allow one level of (correctly nested) parens (think MSDN)
+             |
+             [^()]
+             )*?
+             )>?
+             [ \t]*
+             (                       // $5
+             (['"])              // quote char = $6
+             (.*?)               // Title = $7
+             \6                  // matching quote
+             [ \t]*              // ignore any spaces/tabs between closing quote and )
+             )?                      // title is optional
+             \)
+             )
+             /g, writeAnchorTag);
+             */
+
+            text = text.replace(/(\[((?:\[[^\]]*\]|[^\[\]])*)\]\([ \t]*()<?((?:\([^)]*\)|[^()])*?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g, writeAnchorTag);
+
+            //
+            // Last, handle reference-style shortcuts: [link text]
+            // These must come last in case you've also got [link test][1]
+            // or [link test](/foo)
+            //
+
+            /*
+             text = text.replace(/
+             (                   // wrap whole match in $1
+             \[
+             ([^\[\]]+)      // link text = $2; can't contain '[' or ']'
+             \]
+             )
+             ()()()()()          // pad rest of backreferences
+             /g, writeAnchorTag);
+             */
+            text = text.replace(/(\[([^\[\]]+)\])()()()()()/g, writeAnchorTag);
+
+            return text;
+        }
+
+        function writeAnchorTag(wholeMatch, m1, m2, m3, m4, m5, m6, m7) {
+            if (m7 == undefined) m7 = "";
+            var whole_match = m1;
+            var link_text = m2.replace(/:\/\//g, "~P"); // to prevent auto-linking withing the link. will be converted back after the auto-linker runs
+            var link_id = m3.toLowerCase();
+            var url = m4;
+            var title = m7;
+
+            if (url == "") {
+                if (link_id == "") {
+                    // lower-case and turn embedded newlines into spaces
+                    link_id = link_text.toLowerCase().replace(/ ?\n/g, " ");
+                }
+                url = "#" + link_id;
+
+                if (g_urls.get(link_id) != undefined) {
+                    url = g_urls.get(link_id);
+                    if (g_titles.get(link_id) != undefined) {
+                        title = g_titles.get(link_id);
+                    }
+                }
+                else {
+                    if (whole_match.search(/\(\s*\)$/m) > -1) {
+                        // Special case for explicit empty url
+                        url = "";
+                    } else {
+                        return whole_match;
+                    }
+                }
+            }
+            url = encodeProblemUrlChars(url);
+            url = escapeCharacters(url, "*_");
+            var result = "<a href=\"" + url + "\"";
+
+            if (title != "") {
+                title = attributeEncode(title);
+                title = escapeCharacters(title, "*_");
+                result += " title=\"" + title + "\"";
+            }
+
+            result += ">" + link_text + "</a>";
+
+            return result;
+        }
+
+        function _DoImages(text) {
+            //
+            // Turn Markdown image shortcuts into <img> tags.
+            //
+
+            //
+            // First, handle reference-style labeled images: ![alt text][id]
+            //
+
+            /*
+             text = text.replace(/
+             (                   // wrap whole match in $1
+             !\[
+             (.*?)           // alt text = $2
+             \]
+
+             [ ]?            // one optional space
+             (?:\n[ ]*)?     // one optional newline followed by spaces
+
+             \[
+             (.*?)           // id = $3
+             \]
+             )
+             ()()()()            // pad rest of backreferences
+             /g, writeImageTag);
+             */
+            text = text.replace(/(!\[(.*?)\][ ]?(?:\n[ ]*)?\[(.*?)\])()()()()/g, writeImageTag);
+
+            //
+            // Next, handle inline images:  ![alt text](url "optional title")
+            // Don't forget: encode * and _
+
+            /*
+             text = text.replace(/
+             (                   // wrap whole match in $1
+             !\[
+             (.*?)           // alt text = $2
+             \]
+             \s?             // One optional whitespace character
+             \(              // literal paren
+             [ \t]*
+             ()              // no id, so leave $3 empty
+             <?(\S+?)>?      // src url = $4
+             [ \t]*
+             (               // $5
+             (['"])      // quote char = $6
+             (.*?)       // title = $7
+             \6          // matching quote
+             [ \t]*
+             )?              // title is optional
+             \)
+             )
+             /g, writeImageTag);
+             */
+            text = text.replace(/(!\[(.*?)\]\s?\([ \t]*()<?(\S+?)>?[ \t]*((['"])(.*?)\6[ \t]*)?\))/g, writeImageTag);
+
+            return text;
+        }
+
+        function attributeEncode(text) {
+            // unconditionally replace angle brackets here -- what ends up in an attribute (e.g. alt or title)
+            // never makes sense to have verbatim HTML in it (and the sanitizer would totally break it)
+            return text.replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+        }
+
+        function writeImageTag(wholeMatch, m1, m2, m3, m4, m5, m6, m7) {
+            var whole_match = m1;
+            var alt_text = m2;
+            var link_id = m3.toLowerCase();
+            var url = m4;
+            var title = m7;
+
+            if (!title) title = "";
+
+            if (url == "") {
+                if (link_id == "") {
+                    // lower-case and turn embedded newlines into spaces
+                    link_id = alt_text.toLowerCase().replace(/ ?\n/g, " ");
+                }
+                url = "#" + link_id;
+
+                if (g_urls.get(link_id) != undefined) {
+                    url = g_urls.get(link_id);
+                    if (g_titles.get(link_id) != undefined) {
+                        title = g_titles.get(link_id);
+                    }
+                }
+                else {
+                    return whole_match;
+                }
+            }
+
+            alt_text = escapeCharacters(attributeEncode(alt_text), "*_[]()");
+            url = escapeCharacters(url, "*_");
+            var result = "<img src=\"" + url + "\" alt=\"" + alt_text + "\"";
+
+            // attacklab: Markdown.pl adds empty title attributes to images.
+            // Replicate this bug.
+
+            //if (title != "") {
+            title = attributeEncode(title);
+            title = escapeCharacters(title, "*_");
+            result += " title=\"" + title + "\"";
+            //}
+
+            result += " />";
+
+            return result;
+        }
+
+        function _DoHeaders(text) {
+
+            // Setext-style headers:
+            //  Header 1
+            //  ========
+            //
+            //  Header 2
+            //  --------
+            //
+            text = text.replace(/^(.+)[ \t]*\n=+[ \t]*\n+/gm,
+                function (wholeMatch, m1) { return "<h1>" + _RunSpanGamut(m1) + "</h1>\n\n"; }
+            );
+
+            text = text.replace(/^(.+)[ \t]*\n-+[ \t]*\n+/gm,
+                function (matchFound, m1) { return "<h2>" + _RunSpanGamut(m1) + "</h2>\n\n"; }
+            );
+
+            // atx-style headers:
+            //  # Header 1
+            //  ## Header 2
+            //  ## Header 2 with closing hashes ##
+            //  ...
+            //  ###### Header 6
+            //
+
+            /*
+             text = text.replace(/
+             ^(\#{1,6})      // $1 = string of #'s
+             [ \t]*
+             (.+?)           // $2 = Header text
+             [ \t]*
+             \#*             // optional closing #'s (not counted)
+             \n+
+             /gm, function() {...});
+             */
+
+            text = text.replace(/^(\#{1,6})[ \t]*(.+?)[ \t]*\#*\n+/gm,
+                function (wholeMatch, m1, m2) {
+                    var h_level = m1.length;
+                    return "<h" + h_level + ">" + _RunSpanGamut(m2) + "</h" + h_level + ">\n\n";
+                }
+            );
+
+            return text;
+        }
+
+        function _DoLists(text) {
+            //
+            // Form HTML ordered (numbered) and unordered (bulleted) lists.
+            //
+
+            // attacklab: add sentinel to hack around khtml/safari bug:
+            // http://bugs.webkit.org/show_bug.cgi?id=11231
+            text += "~0";
+
+            // Re-usable pattern to match any entirel ul or ol list:
+
+            /*
+             var whole_list = /
+             (                                   // $1 = whole list
+             (                               // $2
+             [ ]{0,3}                    // attacklab: g_tab_width - 1
+             ([*+-]|\d+[.])              // $3 = first list item marker
+             [ \t]+
+             )
+             [^\r]+?
+             (                               // $4
+             ~0                          // sentinel for workaround; should be $
+             |
+             \n{2,}
+             (?=\S)
+             (?!                         // Negative lookahead for another list item marker
+             [ \t]*
+             (?:[*+-]|\d+[.])[ \t]+
+             )
+             )
+             )
+             /g
+             */
+            var whole_list = /^(([ ]{0,3}([*+-]|\d+[.])[ \t]+)[^\r]+?(~0|\n{2,}(?=\S)(?![ \t]*(?:[*+-]|\d+[.])[ \t]+)))/gm;
+
+            if (g_list_level) {
+                text = text.replace(whole_list, function (wholeMatch, m1, m2) {
+                    var list = m1;
+                    var list_type = (m2.search(/[*+-]/g) > -1) ? "ul" : "ol";
+
+                    var result = _ProcessListItems(list, list_type);
+
+                    // Trim any trailing whitespace, to put the closing `</$list_type>`
+                    // up on the preceding line, to get it past the current stupid
+                    // HTML block parser. This is a hack to work around the terrible
+                    // hack that is the HTML block parser.
+                    result = result.replace(/\s+$/, "");
+                    result = "<" + list_type + ">" + result + "</" + list_type + ">\n";
+                    return result;
+                });
+            } else {
+                whole_list = /(\n\n|^\n?)(([ ]{0,3}([*+-]|\d+[.])[ \t]+)[^\r]+?(~0|\n{2,}(?=\S)(?![ \t]*(?:[*+-]|\d+[.])[ \t]+)))/g;
+                text = text.replace(whole_list, function (wholeMatch, m1, m2, m3) {
+                    var runup = m1;
+                    var list = m2;
+
+                    var list_type = (m3.search(/[*+-]/g) > -1) ? "ul" : "ol";
+                    var result = _ProcessListItems(list, list_type);
+                    result = runup + "<" + list_type + ">\n" + result + "</" + list_type + ">\n";
+                    return result;
+                });
+            }
+
+            // attacklab: strip sentinel
+            text = text.replace(/~0/, "");
+
+            return text;
+        }
+
+        var _listItemMarkers = { ol: "\\d+[.]", ul: "[*+-]" };
+
+        function _ProcessListItems(list_str, list_type) {
+            //
+            //  Process the contents of a single ordered or unordered list, splitting it
+            //  into individual list items.
+            //
+            //  list_type is either "ul" or "ol".
+
+            // The $g_list_level global keeps track of when we're inside a list.
+            // Each time we enter a list, we increment it; when we leave a list,
+            // we decrement. If it's zero, we're not in a list anymore.
+            //
+            // We do this because when we're not inside a list, we want to treat
+            // something like this:
+            //
+            //    I recommend upgrading to version
+            //    8. Oops, now this line is treated
+            //    as a sub-list.
+            //
+            // As a single paragraph, despite the fact that the second line starts
+            // with a digit-period-space sequence.
+            //
+            // Whereas when we're inside a list (or sub-list), that line will be
+            // treated as the start of a sub-list. What a kludge, huh? This is
+            // an aspect of Markdown's syntax that's hard to parse perfectly
+            // without resorting to mind-reading. Perhaps the solution is to
+            // change the syntax rules such that sub-lists must start with a
+            // starting cardinal number; e.g. "1." or "a.".
+
+            g_list_level++;
+
+            // trim trailing blank lines:
+            list_str = list_str.replace(/\n{2,}$/, "\n");
+
+            // attacklab: add sentinel to emulate \z
+            list_str += "~0";
+
+            // In the original attacklab showdown, list_type was not given to this function, and anything
+            // that matched /[*+-]|\d+[.]/ would just create the next <li>, causing this mismatch:
+            //
+            //  Markdown          rendered by WMD        rendered by MarkdownSharp
+            //  ------------------------------------------------------------------
+            //  1. first          1. first               1. first
+            //  2. second         2. second              2. second
+            //  - third           3. third                   * third
+            //
+            // We changed this to behave identical to MarkdownSharp. This is the constructed RegEx,
+            // with {MARKER} being one of \d+[.] or [*+-], depending on list_type:
+
+            /*
+             list_str = list_str.replace(/
+             (^[ \t]*)                       // leading whitespace = $1
+             ({MARKER}) [ \t]+               // list marker = $2
+             ([^\r]+?                        // list item text   = $3
+             (\n+)
+             )
+             (?=
+             (~0 | \2 ({MARKER}) [ \t]+)
+             )
+             /gm, function(){...});
+             */
+
+            var marker = _listItemMarkers[list_type];
+            var re = new RegExp("(^[ \\t]*)(" + marker + ")[ \\t]+([^\\r]+?(\\n+))(?=(~0|\\1(" + marker + ")[ \\t]+))", "gm");
+            var last_item_had_a_double_newline = false;
+            list_str = list_str.replace(re,
+                function (wholeMatch, m1, m2, m3) {
+                    var item = m3;
+                    var leading_space = m1;
+                    var ends_with_double_newline = /\n\n$/.test(item);
+                    var contains_double_newline = ends_with_double_newline || item.search(/\n{2,}/) > -1;
+
+                    if (contains_double_newline || last_item_had_a_double_newline) {
+                        item = _RunBlockGamut(_Outdent(item), /* doNotUnhash = */true);
+                    }
+                    else {
+                        // Recursion for sub-lists:
+                        item = _DoLists(_Outdent(item));
+                        item = item.replace(/\n$/, ""); // chomp(item)
+                        item = _RunSpanGamut(item);
+                    }
+                    last_item_had_a_double_newline = ends_with_double_newline;
+                    return "<li>" + item + "</li>\n";
+                }
+            );
+
+            // attacklab: strip sentinel
+            list_str = list_str.replace(/~0/g, "");
+
+            g_list_level--;
+            return list_str;
+        }
+
+        function _DoCodeBlocks(text) {
+            //
+            //  Process Markdown `<pre><code>` blocks.
+            //
+
+            /*
+             text = text.replace(/
+             (?:\n\n|^)
+             (                               // $1 = the code block -- one or more lines, starting with a space/tab
+             (?:
+             (?:[ ]{4}|\t)           // Lines must start with a tab or a tab-width of spaces - attacklab: g_tab_width
+             .*\n+
+             )+
+             )
+             (\n*[ ]{0,3}[^ \t\n]|(?=~0))    // attacklab: g_tab_width
+             /g ,function(){...});
+             */
+
+            // attacklab: sentinel workarounds for lack of \A and \Z, safari\khtml bug
+            text += "~0";
+
+            text = text.replace(/(?:\n\n|^)((?:(?:[ ]{4}|\t).*\n+)+)(\n*[ ]{0,3}[^ \t\n]|(?=~0))/g,
+                function (wholeMatch, m1, m2) {
+                    var codeblock = m1;
+                    var nextChar = m2;
+
+                    codeblock = _EncodeCode(_Outdent(codeblock));
+                    codeblock = _Detab(codeblock);
+                    codeblock = codeblock.replace(/^\n+/g, ""); // trim leading newlines
+                    codeblock = codeblock.replace(/\n+$/g, ""); // trim trailing whitespace
+
+                    codeblock = '<pre class="prettyprint linenums"><code>' + codeblock + '\n</code></pre>';
+
+                    return "\n\n" + codeblock + "\n\n" + nextChar;
+                }
+            );
+
+            // attacklab: strip sentinel
+            text = text.replace(/~0/, "");
+
+            return text;
+        }
+
+        function hashBlock(text) {
+            text = text.replace(/(^\n+|\n+$)/g, "");
+            return "\n\n~K" + (g_html_blocks.push(text) - 1) + "K\n\n";
+        }
+
+        function _DoCodeSpans(text) {
+            //
+            // * Backtick quotes are used for <code></code> spans.
+            //
+            // * You can use multiple backticks as the delimiters if you want to
+            //   include literal backticks in the code span. So, this input:
+            //
+            //      Just type ``foo `bar` baz`` at the prompt.
+            //
+            //   Will translate to:
+            //
+            //      <p>Just type <code>foo `bar` baz</code> at the prompt.</p>
+            //
+            //   There's no arbitrary limit to the number of backticks you
+            //   can use as delimters. If you need three consecutive backticks
+            //   in your code, use four for delimiters, etc.
+            //
+            // * You can use spaces to get literal backticks at the edges:
+            //
+            //      ... type `` `bar` `` ...
+            //
+            //   Turns to:
+            //
+            //      ... type <code>`bar`</code> ...
+            //
+
+            /*
+             text = text.replace(/
+             (^|[^\\])       // Character before opening ` can't be a backslash
+             (`+)            // $2 = Opening run of `
+             (               // $3 = The code block
+             [^\r]*?
+             [^`]        // attacklab: work around lack of lookbehind
+             )
+             \2              // Matching closer
+             (?!`)
+             /gm, function(){...});
+             */
+
+            text = text.replace(/(^|[^\\])(`+)([^\r]*?[^`])\2(?!`)/gm,
+                function (wholeMatch, m1, m2, m3, m4) {
+                    var c = m3;
+                    c = c.replace(/^([ \t]*)/g, ""); // leading whitespace
+                    c = c.replace(/[ \t]*$/g, ""); // trailing whitespace
+                    c = _EncodeCode(c);
+                    c = c.replace(/:\/\//g, "~P"); // to prevent auto-linking. Not necessary in code *blocks*, but in code spans. Will be converted back after the auto-linker runs.
+                    return m1 + "<code>" + c + "</code>";
+                }
+            );
+
+            return text;
+        }
+
+        function _EncodeCode(text) {
+            //
+            // Encode/escape certain characters inside Markdown code runs.
+            // The point is that in code, these characters are literals,
+            // and lose their special Markdown meanings.
+            //
+            // Encode all ampersands; HTML entities are not
+            // entities within a Markdown code span.
+            text = text.replace(/&/g, "&amp;");
+
+            // Do the angle bracket song and dance:
+            text = text.replace(/</g, "&lt;");
+            text = text.replace(/>/g, "&gt;");
+
+            // Now, escape characters that are magic in Markdown:
+            text = escapeCharacters(text, "\*_{}[]\\", false);
+
+            // jj the line above breaks this:
+            //---
+
+            //* Item
+
+            //   1. Subitem
+
+            //            special char: *
+            //---
+
+            return text;
+        }
+
+        function _DoItalicsAndBold(text) {
+
+            // <strong> must go first:
+            text = text.replace(/([\W_]|^)(\*\*|__)(?=\S)([^\r]*?\S[\*_]*)\2([\W_]|$)/g,
+                "$1<strong>$3</strong>$4");
+
+            text = text.replace(/([\W_]|^)(\*|_)(?=\S)([^\r\*_]*?\S)\2([\W_]|$)/g,
+                "$1<em>$3</em>$4");
+
+            return text;
+        }
+
+        function _DoBlockQuotes(text) {
+
+            /*
+             text = text.replace(/
+             (                           // Wrap whole match in $1
+             (
+             ^[ \t]*>[ \t]?      // '>' at the start of a line
+             .+\n                // rest of the first line
+             (.+\n)*             // subsequent consecutive lines
+             \n*                 // blanks
+             )+
+             )
+             /gm, function(){...});
+             */
+
+            text = text.replace(/((^[ \t]*>[ \t]?.+\n(.+\n)*\n*)+)/gm,
+                function (wholeMatch, m1) {
+                    var bq = m1;
+
+                    // attacklab: hack around Konqueror 3.5.4 bug:
+                    // "----------bug".replace(/^-/g,"") == "bug"
+
+                    bq = bq.replace(/^[ \t]*>[ \t]?/gm, "~0"); // trim one level of quoting
+
+                    // attacklab: clean up hack
+                    bq = bq.replace(/~0/g, "");
+
+                    bq = bq.replace(/^[ \t]+$/gm, "");     // trim whitespace-only lines
+                    bq = _RunBlockGamut(bq);             // recurse
+
+                    bq = bq.replace(/(^|\n)/g, "$1  ");
+                    // These leading spaces screw with <pre> content, so we need to fix that:
+                    bq = bq.replace(
+                        /(\s*<pre>[^\r]+?<\/pre>)/gm,
+                        function (wholeMatch, m1) {
+                            var pre = m1;
+                            // attacklab: hack around Konqueror 3.5.4 bug:
+                            pre = pre.replace(/^  /mg, "~0");
+                            pre = pre.replace(/~0/g, "");
+                            return pre;
+                        });
+
+                    return hashBlock("<blockquote>\n" + bq + "\n</blockquote>");
+                }
+            );
+            return text;
+        }
+
+        function _FormParagraphs(text, doNotUnhash) {
+            //
+            //  Params:
+            //    $text - string to process with html <p> tags
+            //
+
+            // Strip leading and trailing lines:
+            text = text.replace(/^\n+/g, "");
+            text = text.replace(/\n+$/g, "");
+
+            var grafs = text.split(/\n{2,}/g);
+            var grafsOut = [];
+
+            var markerRe = /~K(\d+)K/;
+
+            //
+            // Wrap <p> tags.
+            //
+            var end = grafs.length;
+            for (var i = 0; i < end; i++) {
+                var str = grafs[i];
+
+                // if this is an HTML marker, copy it
+                if (markerRe.test(str)) {
+                    grafsOut.push(str);
+                }
+                else if (/\S/.test(str)) {
+                    str = _RunSpanGamut(str);
+                    str = str.replace(/^([ \t]*)/g, "<p>");
+                    str += "</p>"
+                    grafsOut.push(str);
+                }
+
+            }
+            //
+            // Unhashify HTML blocks
+            //
+            if (!doNotUnhash) {
+                end = grafsOut.length;
+                for (var i = 0; i < end; i++) {
+                    var foundAny = true;
+                    while (foundAny) { // we may need several runs, since the data may be nested
+                        foundAny = false;
+                        grafsOut[i] = grafsOut[i].replace(/~K(\d+)K/g, function (wholeMatch, id) {
+                            foundAny = true;
+                            return g_html_blocks[id];
+                        });
+                    }
+                }
+            }
+            return grafsOut.join("\n\n");
+        }
+
+        function _EncodeAmpsAndAngles(text) {
+            // Smart processing for ampersands and angle brackets that need to be encoded.
+
+            // Ampersand-encoding based entirely on Nat Irons's Amputator MT plugin:
+            //   http://bumppo.net/projects/amputator/
+            text = text.replace(/&(?!#?[xX]?(?:[0-9a-fA-F]+|\w+);)/g, "&amp;");
+
+            // Encode naked <'s
+            text = text.replace(/<(?![a-z\/?\$!])/gi, "&lt;");
+
+            return text;
+        }
+
+        function _EncodeBackslashEscapes(text) {
+            //
+            //   Parameter:  String.
+            //   Returns:    The string, with after processing the following backslash
+            //               escape sequences.
+            //
+
+            // attacklab: The polite way to do this is with the new
+            // escapeCharacters() function:
+            //
+            //     text = escapeCharacters(text,"\\",true);
+            //     text = escapeCharacters(text,"`*_{}[]()>#+-.!",true);
+            //
+            // ...but we're sidestepping its use of the (slow) RegExp constructor
+            // as an optimization for Firefox.  This function gets called a LOT.
+
+            text = text.replace(/\\(\\)/g, escapeCharacters_callback);
+            text = text.replace(/\\([`*_{}\[\]()>#+-.!])/g, escapeCharacters_callback);
+            return text;
+        }
+
+        function _DoAutoLinks(text) {
+
+            // note that at this point, all other URL in the text are already hyperlinked as <a href=""></a>
+            // *except* for the <http://www.foo.com> case
+
+            // automatically add < and > around unadorned raw hyperlinks
+            // must be preceded by space/BOF and followed by non-word/EOF character
+            text = text.replace(/(^|\s)(https?|ftp)(:\/\/[-A-Z0-9+&@#\/%?=~_|\[\]\(\)!:,\.;]*[-A-Z0-9+&@#\/%=~_|\[\]])($|\W)/gi, "$1<$2$3>$4");
+
+            //  autolink anything like <http://example.com>
+
+            var replacer = function (wholematch, m1) { return "<a href=\"" + m1 + "\">" + pluginHooks.plainLinkText(m1) + "</a>"; }
+            text = text.replace(/<((https?|ftp):[^'">\s]+)>/gi, replacer);
+
+            // Email addresses: <address@domain.foo>
+            /*
+             text = text.replace(/
+             <
+             (?:mailto:)?
+             (
+             [-.\w]+
+             \@
+             [-a-z0-9]+(\.[-a-z0-9]+)*\.[a-z]+
+             )
+             >
+             /gi, _DoAutoLinks_callback());
+             */
+
+            var email_replacer = function(wholematch, m1) {
+                var mailto = 'mailto:'
+                var link
+                var email
+                if (m1.substring(0, mailto.length) != mailto){
+                    link = mailto + m1;
+                    email = m1;
+                } else {
+                    link = m1;
+                    email = m1.substring(mailto.length, m1.length);
+                }
+                return "<a href=\"" + link + "\">" + pluginHooks.plainLinkText(email) + "</a>";
+            }
+            text = text.replace(/<((?:mailto:)?([-.\w]+\@[-a-z0-9]+(\.[-a-z0-9]+)*\.[a-z]+))>/gi, email_replacer);
+
+            return text;
+        }
+
+        function _UnescapeSpecialChars(text) {
+            //
+            // Swap back in all the special characters we've hidden.
+            //
+            text = text.replace(/~E(\d+)E/g,
+                function (wholeMatch, m1) {
+                    var charCodeToReplace = parseInt(m1);
+                    return String.fromCharCode(charCodeToReplace);
+                }
+            );
+            return text;
+        }
+
+        function _Outdent(text) {
+            //
+            // Remove one level of line-leading tabs or spaces
+            //
+
+            // attacklab: hack around Konqueror 3.5.4 bug:
+            // "----------bug".replace(/^-/g,"") == "bug"
+
+            text = text.replace(/^(\t|[ ]{1,4})/gm, "~0"); // attacklab: g_tab_width
+
+            // attacklab: clean up hack
+            text = text.replace(/~0/g, "")
+
+            return text;
+        }
+
+        function _Detab(text) {
+            if (!/\t/.test(text))
+                return text;
+
+            var spaces = ["    ", "   ", "  ", " "],
+                skew = 0,
+                v;
+
+            return text.replace(/[\n\t]/g, function (match, offset) {
+                if (match === "\n") {
+                    skew = offset + 1;
+                    return match;
+                }
+                v = (offset - skew) % 4;
+                skew = offset + 1;
+                return spaces[v];
+            });
+        }
+
+        //
+        //  attacklab: Utility functions
+        //
+
+        var _problemUrlChars = /(?:["'*()[\]:]|~D)/g;
+
+        // hex-encodes some unusual "problem" chars in URLs to avoid URL detection problems
+        function encodeProblemUrlChars(url) {
+            if (!url)
+                return "";
+
+            var len = url.length;
+
+            return url.replace(_problemUrlChars, function (match, offset) {
+                if (match == "~D") // escape for dollar
+                    return "%24";
+                if (match == ":") {
+                    if (offset == len - 1 || /[0-9\/]/.test(url.charAt(offset + 1)))
+                        return ":";
+                    if (url.substring(0, 'mailto:'.length) === 'mailto:')
+                        return ":";
+                    if (url.substring(0, 'magnet:'.length) === 'magnet:')
+                        return ":";
+                }
+                return "%" + match.charCodeAt(0).toString(16);
+            });
+        }
+
+
+        function escapeCharacters(text, charsToEscape, afterBackslash) {
+            // First we have to escape the escape characters so that
+            // we can build a character class out of them
+            var regexString = "([" + charsToEscape.replace(/([\[\]\\])/g, "\\$1") + "])";
+
+            if (afterBackslash) {
+                regexString = "\\\\" + regexString;
+            }
+
+            var regex = new RegExp(regexString, "g");
+            text = text.replace(regex, escapeCharacters_callback);
+
+            return text;
+        }
+
+
+        function escapeCharacters_callback(wholeMatch, m1) {
+            var charCodeToEscape = m1.charCodeAt(0);
+            return "~E" + charCodeToEscape + "E";
+        }
+
+    }; // end of the Markdown.Converter constructor
+
+})();
+
+// needs Markdown.Converter.js at the moment
+
+(function () {
+
+    var util = {},
+        position = {},
+        ui = {},
+        doc = window.document,
+        re = window.RegExp,
+        nav = window.navigator,
+        SETTINGS = { lineLength: 72 },
+
+        // Used to work around some browser bugs where we can't use feature testing.
+        uaSniffed = {
+            isIE: /msie/.test(nav.userAgent.toLowerCase()),
+            isIE_5or6: /msie 6/.test(nav.userAgent.toLowerCase()) || /msie 5/.test(nav.userAgent.toLowerCase()),
+            isOpera: /opera/.test(nav.userAgent.toLowerCase())
+        };
+
+
+    // -------------------------------------------------------------------
+    //  YOUR CHANGES GO HERE
+    //
+    // I've tried to localize the things you are likely to change to
+    // this area.
+    // -------------------------------------------------------------------
+
+    // The text that appears on the upper part of the dialog box when
+    // entering links.
+    var linkDialogText = "<code>http://example.com/ \"optional title\"</code>";
+    var imageDialogText = "<code>http://example.com/images/diagram.jpg \"optional title\"</code>";
+
+    // The default text that appears in the dialog input box when entering
+    // links.
+    var imageDefaultText = "http://";
+    var linkDefaultText = "http://";
+
+    var defaultHelpHoverTitle = "Markdown Editing Help";
+
+    // -------------------------------------------------------------------
+    //  END OF YOUR CHANGES
+    // -------------------------------------------------------------------
+
+    // help, if given, should have a property "handler", the click handler for the help button,
+    // and can have an optional property "title" for the button's tooltip (defaults to "Markdown Editing Help").
+    // If help isn't given, not help button is created.
+    //
+    // The constructed editor object has the methods:
+    // - getConverter() returns the markdown converter object that was passed to the constructor
+    // - run() actually starts the editor; should be called after all necessary plugins are registered. Calling this more than once is a no-op.
+    // - refreshPreview() forces the preview to be updated. This method is only available after run() was called.
+    Markdown.Editor = function (markdownConverter, idPostfix, help) {
+
+        idPostfix = idPostfix || "";
+
+        var hooks = this.hooks = new Markdown.HookCollection();
+        hooks.addNoop("onPreviewRefresh");       // called with no arguments after the preview has been refreshed
+        hooks.addNoop("postBlockquoteCreation"); // called with the user's selection *after* the blockquote was created; should return the actual to-be-inserted text
+        hooks.addFalse("insertImageDialog");     /* called with one parameter: a callback to be called with the URL of the image. If the application creates
+         * its own image insertion dialog, this hook should return true, and the callback should be called with the chosen
+         * image url (or null if the user cancelled). If this hook returns false, the default dialog will be used.
+         */
+
+        this.getConverter = function () { return markdownConverter; }
+
+        var that = this,
+            panels;
+
+        this.run = function () {
+            if (panels)
+                return; // already initialized
+
+            panels = new PanelCollection(idPostfix);
+            var commandManager = new CommandManager(hooks);
+            var previewManager = new PreviewManager(markdownConverter, panels, function () { hooks.onPreviewRefresh(); });
+            var undoManager, uiManager;
+
+            if (!/\?noundo/.test(doc.location.href)) {
+                undoManager = new UndoManager(function () {
+                    previewManager.refresh();
+                    if (uiManager) // not available on the first call
+                        uiManager.setUndoRedoButtonStates();
+                }, panels);
+                this.textOperation = function (f) {
+                    undoManager.setCommandMode();
+                    f();
+                    that.refreshPreview();
+                }
+            }
+
+            uiManager = new UIManager(idPostfix, panels, undoManager, previewManager, commandManager, help);
+            uiManager.setUndoRedoButtonStates();
+
+            var forceRefresh = that.refreshPreview = function () { previewManager.refresh(true); };
+
+            forceRefresh();
+        };
+
+    }
+
+    // before: contains all the text in the input box BEFORE the selection.
+    // after: contains all the text in the input box AFTER the selection.
+    function Chunks() { }
+
+    // startRegex: a regular expression to find the start tag
+    // endRegex: a regular expresssion to find the end tag
+    Chunks.prototype.findTags = function (startRegex, endRegex) {
+
+        var chunkObj = this;
+        var regex;
+
+        if (startRegex) {
+
+            regex = util.extendRegExp(startRegex, "", "$");
+
+            this.before = this.before.replace(regex,
+                function (match) {
+                    chunkObj.startTag = chunkObj.startTag + match;
+                    return "";
+                });
+
+            regex = util.extendRegExp(startRegex, "^", "");
+
+            this.selection = this.selection.replace(regex,
+                function (match) {
+                    chunkObj.startTag = chunkObj.startTag + match;
+                    return "";
+                });
+        }
+
+        if (endRegex) {
+
+            regex = util.extendRegExp(endRegex, "", "$");
+
+            this.selection = this.selection.replace(regex,
+                function (match) {
+                    chunkObj.endTag = match + chunkObj.endTag;
+                    return "";
+                });
+
+            regex = util.extendRegExp(endRegex, "^", "");
+
+            this.after = this.after.replace(regex,
+                function (match) {
+                    chunkObj.endTag = match + chunkObj.endTag;
+                    return "";
+                });
+        }
+    };
+
+    // If remove is false, the whitespace is transferred
+    // to the before/after regions.
+    //
+    // If remove is true, the whitespace disappears.
+    Chunks.prototype.trimWhitespace = function (remove) {
+        var beforeReplacer, afterReplacer, that = this;
+        if (remove) {
+            beforeReplacer = afterReplacer = "";
+        } else {
+            beforeReplacer = function (s) { that.before += s; return ""; }
+            afterReplacer = function (s) { that.after = s + that.after; return ""; }
+        }
+
+        this.selection = this.selection.replace(/^(\s*)/, beforeReplacer).replace(/(\s*)$/, afterReplacer);
+    };
+
+
+    Chunks.prototype.skipLines = function (nLinesBefore, nLinesAfter, findExtraNewlines) {
+
+        if (nLinesBefore === undefined) {
+            nLinesBefore = 1;
+        }
+
+        if (nLinesAfter === undefined) {
+            nLinesAfter = 1;
+        }
+
+        nLinesBefore++;
+        nLinesAfter++;
+
+        var regexText;
+        var replacementText;
+
+        // chrome bug ... documented at: http://meta.stackoverflow.com/questions/63307/blockquote-glitch-in-editor-in-chrome-6-and-7/65985#65985
+        if (navigator.userAgent.match(/Chrome/)) {
+            "X".match(/()./);
+        }
+
+        this.selection = this.selection.replace(/(^\n*)/, "");
+
+        this.startTag = this.startTag + re.$1;
+
+        this.selection = this.selection.replace(/(\n*$)/, "");
+        this.endTag = this.endTag + re.$1;
+        this.startTag = this.startTag.replace(/(^\n*)/, "");
+        this.before = this.before + re.$1;
+        this.endTag = this.endTag.replace(/(\n*$)/, "");
+        this.after = this.after + re.$1;
+
+        if (this.before) {
+
+            regexText = replacementText = "";
+
+            while (nLinesBefore--) {
+                regexText += "\\n?";
+                replacementText += "\n";
+            }
+
+            if (findExtraNewlines) {
+                regexText = "\\n*";
+            }
+            this.before = this.before.replace(new re(regexText + "$", ""), replacementText);
+        }
+
+        if (this.after) {
+
+            regexText = replacementText = "";
+
+            while (nLinesAfter--) {
+                regexText += "\\n?";
+                replacementText += "\n";
+            }
+            if (findExtraNewlines) {
+                regexText = "\\n*";
+            }
+
+            this.after = this.after.replace(new re(regexText, ""), replacementText);
+        }
+    };
+
+    // end of Chunks
+
+    // A collection of the important regions on the page.
+    // Cached so we don't have to keep traversing the DOM.
+    // Also holds ieCachedRange and ieCachedScrollTop, where necessary; working around
+    // this issue:
+    // Internet explorer has problems with CSS sprite buttons that use HTML
+    // lists.  When you click on the background image "button", IE will
+    // select the non-existent link text and discard the selection in the
+    // textarea.  The solution to this is to cache the textarea selection
+    // on the button's mousedown event and set a flag.  In the part of the
+    // code where we need to grab the selection, we check for the flag
+    // and, if it's set, use the cached area instead of querying the
+    // textarea.
+    //
+    // This ONLY affects Internet Explorer (tested on versions 6, 7
+    // and 8) and ONLY on button clicks.  Keyboard shortcuts work
+    // normally since the focus never leaves the textarea.
+    function PanelCollection(postfix) {
+        this.buttonBar = doc.getElementById("wmd-button-bar" + postfix);
+        this.preview = doc.getElementById("wmd-preview" + postfix);
+        this.input = doc.getElementById("wmd-input" + postfix);
+    };
+
+    // Returns true if the DOM element is visible, false if it's hidden.
+    // Checks if display is anything other than none.
+    util.isVisible = function (elem) {
+
+        if (window.getComputedStyle) {
+            // Most browsers
+            return window.getComputedStyle(elem, null).getPropertyValue("display") !== "none";
+        }
+        else if (elem.currentStyle) {
+            // IE
+            return elem.currentStyle["display"] !== "none";
+        }
+    };
+
+
+    // Adds a listener callback to a DOM element which is fired on a specified
+    // event.
+    util.addEvent = function (elem, event, listener) {
+        if (elem.attachEvent) {
+            // IE only.  The "on" is mandatory.
+            elem.attachEvent("on" + event, listener);
+        }
+        else {
+            // Other browsers.
+            elem.addEventListener(event, listener, false);
+        }
+    };
+
+
+    // Removes a listener callback from a DOM element which is fired on a specified
+    // event.
+    util.removeEvent = function (elem, event, listener) {
+        if (elem.detachEvent) {
+            // IE only.  The "on" is mandatory.
+            elem.detachEvent("on" + event, listener);
+        }
+        else {
+            // Other browsers.
+            elem.removeEventListener(event, listener, false);
+        }
+    };
+
+    // Converts \r\n and \r to \n.
+    util.fixEolChars = function (text) {
+        text = text.replace(/\r\n/g, "\n");
+        text = text.replace(/\r/g, "\n");
+        return text;
+    };
+
+    // Extends a regular expression.  Returns a new RegExp
+    // using pre + regex + post as the expression.
+    // Used in a few functions where we have a base
+    // expression and we want to pre- or append some
+    // conditions to it (e.g. adding "$" to the end).
+    // The flags are unchanged.
+    //
+    // regex is a RegExp, pre and post are strings.
+    util.extendRegExp = function (regex, pre, post) {
+
+        if (pre === null || pre === undefined) {
+            pre = "";
+        }
+        if (post === null || post === undefined) {
+            post = "";
+        }
+
+        var pattern = regex.toString();
+        var flags;
+
+        // Replace the flags with empty space and store them.
+        pattern = pattern.replace(/\/([gim]*)$/, function (wholeMatch, flagsPart) {
+            flags = flagsPart;
+            return "";
+        });
+
+        // Remove the slash delimiters on the regular expression.
+        pattern = pattern.replace(/(^\/|\/$)/g, "");
+        pattern = pre + pattern + post;
+
+        return new re(pattern, flags);
+    }
+
+    // UNFINISHED
+    // The assignment in the while loop makes jslint cranky.
+    // I'll change it to a better loop later.
+    position.getTop = function (elem, isInner) {
+        var result = elem.offsetTop;
+        if (!isInner) {
+            while (elem = elem.offsetParent) {
+                result += elem.offsetTop;
+            }
+        }
+        return result;
+    };
+
+    position.getHeight = function (elem) {
+        return elem.offsetHeight || elem.scrollHeight;
+    };
+
+    position.getWidth = function (elem) {
+        return elem.offsetWidth || elem.scrollWidth;
+    };
+
+    position.getPageSize = function () {
+
+        var scrollWidth, scrollHeight;
+        var innerWidth, innerHeight;
+
+        // It's not very clear which blocks work with which browsers.
+        if (self.innerHeight && self.scrollMaxY) {
+            scrollWidth = doc.body.scrollWidth;
+            scrollHeight = self.innerHeight + self.scrollMaxY;
+        }
+        else if (doc.body.scrollHeight > doc.body.offsetHeight) {
+            scrollWidth = doc.body.scrollWidth;
+            scrollHeight = doc.body.scrollHeight;
+        }
+        else {
+            scrollWidth = doc.body.offsetWidth;
+            scrollHeight = doc.body.offsetHeight;
+        }
+
+        if (self.innerHeight) {
+            // Non-IE browser
+            innerWidth = self.innerWidth;
+            innerHeight = self.innerHeight;
+        }
+        else if (doc.documentElement && doc.documentElement.clientHeight) {
+            // Some versions of IE (IE 6 w/ a DOCTYPE declaration)
+            innerWidth = doc.documentElement.clientWidth;
+            innerHeight = doc.documentElement.clientHeight;
+        }
+        else if (doc.body) {
+            // Other versions of IE
+            innerWidth = doc.body.clientWidth;
+            innerHeight = doc.body.clientHeight;
+        }
+
+        var maxWidth = Math.max(scrollWidth, innerWidth);
+        var maxHeight = Math.max(scrollHeight, innerHeight);
+        return [maxWidth, maxHeight, innerWidth, innerHeight];
+    };
+
+    // Handles pushing and popping TextareaStates for undo/redo commands.
+    // I should rename the stack variables to list.
+    function UndoManager(callback, panels) {
+
+        var undoObj = this;
+        var undoStack = []; // A stack of undo states
+        var stackPtr = 0; // The index of the current state
+        var mode = "none";
+        var lastState; // The last state
+        var timer; // The setTimeout handle for cancelling the timer
+        var inputStateObj;
+
+        // Set the mode for later logic steps.
+        var setMode = function (newMode, noSave) {
+            if (mode != newMode) {
+                mode = newMode;
+                if (!noSave) {
+                    saveState();
+                }
+            }
+
+            if (!uaSniffed.isIE || mode != "moving") {
+                timer = setTimeout(refreshState, 1);
+            }
+            else {
+                inputStateObj = null;
+            }
+        };
+
+        var refreshState = function (isInitialState) {
+            inputStateObj = new TextareaState(panels, isInitialState);
+            timer = undefined;
+        };
+
+        this.setCommandMode = function () {
+            mode = "command";
+            saveState();
+            timer = setTimeout(refreshState, 0);
+        };
+
+        this.canUndo = function () {
+            return stackPtr > 1;
+        };
+
+        this.canRedo = function () {
+            if (undoStack[stackPtr + 1]) {
+                return true;
+            }
+            return false;
+        };
+
+        // Removes the last state and restores it.
+        this.undo = function () {
+
+            if (undoObj.canUndo()) {
+                if (lastState) {
+                    // What about setting state -1 to null or checking for undefined?
+                    lastState.restore();
+                    lastState = null;
+                }
+                else {
+                    undoStack[stackPtr] = new TextareaState(panels);
+                    undoStack[--stackPtr].restore();
+
+                    if (callback) {
+                        callback();
+                    }
+                }
+            }
+
+            mode = "none";
+            panels.input.focus();
+            refreshState();
+        };
+
+        // Redo an action.
+        this.redo = function () {
+
+            if (undoObj.canRedo()) {
+
+                undoStack[++stackPtr].restore();
+
+                if (callback) {
+                    callback();
+                }
+            }
+
+            mode = "none";
+            panels.input.focus();
+            refreshState();
+        };
+
+        // Push the input area state to the stack.
+        var saveState = function () {
+            var currState = inputStateObj || new TextareaState(panels);
+
+            if (!currState) {
+                return false;
+            }
+            if (mode == "moving") {
+                if (!lastState) {
+                    lastState = currState;
+                }
+                return;
+            }
+            if (lastState) {
+                if (undoStack[stackPtr - 1].text != lastState.text) {
+                    undoStack[stackPtr++] = lastState;
+                }
+                lastState = null;
+            }
+            undoStack[stackPtr++] = currState;
+            undoStack[stackPtr + 1] = null;
+            if (callback) {
+                callback();
+            }
+        };
+
+        var handleCtrlYZ = function (event) {
+
+            var handled = false;
+
+            if (event.ctrlKey || event.metaKey) {
+
+                // IE and Opera do not support charCode.
+                var keyCode = event.charCode || event.keyCode;
+                var keyCodeChar = String.fromCharCode(keyCode);
+
+                switch (keyCodeChar) {
+
+                    case "y":
+                        undoObj.redo();
+                        handled = true;
+                        break;
+
+                    case "z":
+                        if (!event.shiftKey) {
+                            undoObj.undo();
+                        }
+                        else {
+                            undoObj.redo();
+                        }
+                        handled = true;
+                        break;
+                }
+            }
+
+            if (handled) {
+                if (event.preventDefault) {
+                    event.preventDefault();
+                }
+                if (window.event) {
+                    window.event.returnValue = false;
+                }
+                return;
+            }
+        };
+
+        // Set the mode depending on what is going on in the input area.
+        var handleModeChange = function (event) {
+
+            if (!event.ctrlKey && !event.metaKey) {
+
+                var keyCode = event.keyCode;
+
+                if ((keyCode >= 33 && keyCode <= 40) || (keyCode >= 63232 && keyCode <= 63235)) {
+                    // 33 - 40: page up/dn and arrow keys
+                    // 63232 - 63235: page up/dn and arrow keys on safari
+                    setMode("moving");
+                }
+                else if (keyCode == 8 || keyCode == 46 || keyCode == 127) {
+                    // 8: backspace
+                    // 46: delete
+                    // 127: delete
+                    setMode("deleting");
+                }
+                else if (keyCode == 13) {
+                    // 13: Enter
+                    setMode("newlines");
+                }
+                else if (keyCode == 27) {
+                    // 27: escape
+                    setMode("escape");
+                }
+                else if ((keyCode < 16 || keyCode > 20) && keyCode != 91) {
+                    // 16-20 are shift, etc.
+                    // 91: left window key
+                    // I think this might be a little messed up since there are
+                    // a lot of nonprinting keys above 20.
+                    setMode("typing");
+                }
+            }
+        };
+
+        var setEventHandlers = function () {
+            util.addEvent(panels.input, "keypress", function (event) {
+                // keyCode 89: y
+                // keyCode 90: z
+                if ((event.ctrlKey || event.metaKey) && (event.keyCode == 89 || event.keyCode == 90)) {
+                    event.preventDefault();
+                }
+            });
+
+            var handlePaste = function () {
+                if (uaSniffed.isIE || (inputStateObj && inputStateObj.text != panels.input.value)) {
+                    if (timer == undefined) {
+                        mode = "paste";
+                        saveState();
+                        refreshState();
+                    }
+                }
+            };
+
+            util.addEvent(panels.input, "keydown", handleCtrlYZ);
+            util.addEvent(panels.input, "keydown", handleModeChange);
+            util.addEvent(panels.input, "mousedown", function () {
+                setMode("moving");
+            });
+
+            panels.input.onpaste = handlePaste;
+            panels.input.ondrop = handlePaste;
+        };
+
+        var init = function () {
+            setEventHandlers();
+            refreshState(true);
+            saveState();
+        };
+
+        init();
+    }
+
+    // end of UndoManager
+
+    // The input textarea state/contents.
+    // This is used to implement undo/redo by the undo manager.
+    function TextareaState(panels, isInitialState) {
+
+        // Aliases
+        var stateObj = this;
+        var inputArea = panels.input;
+        this.init = function () {
+            if (!util.isVisible(inputArea)) {
+                return;
+            }
+            if (!isInitialState && doc.activeElement && doc.activeElement !== inputArea) { // this happens when tabbing out of the input box
+                return;
+            }
+
+            this.setInputAreaSelectionStartEnd();
+            this.scrollTop = inputArea.scrollTop;
+            if (!this.text && inputArea.selectionStart || inputArea.selectionStart === 0) {
+                this.text = inputArea.value;
+            }
+
+        }
+
+        // Sets the selected text in the input box after we've performed an
+        // operation.
+        this.setInputAreaSelection = function () {
+
+            if (!util.isVisible(inputArea)) {
+                return;
+            }
+
+            if (inputArea.selectionStart !== undefined && !uaSniffed.isOpera) {
+
+                inputArea.focus();
+                inputArea.selectionStart = stateObj.start;
+                inputArea.selectionEnd = stateObj.end;
+                inputArea.scrollTop = stateObj.scrollTop;
+            }
+            else if (doc.selection) {
+
+                if (doc.activeElement && doc.activeElement !== inputArea) {
+                    return;
+                }
+
+                inputArea.focus();
+                var range = inputArea.createTextRange();
+                range.moveStart("character", -inputArea.value.length);
+                range.moveEnd("character", -inputArea.value.length);
+                range.moveEnd("character", stateObj.end);
+                range.moveStart("character", stateObj.start);
+                range.select();
+            }
+        };
+
+        this.setInputAreaSelectionStartEnd = function () {
+
+            if (!panels.ieCachedRange && (inputArea.selectionStart || inputArea.selectionStart === 0)) {
+
+                stateObj.start = inputArea.selectionStart;
+                stateObj.end = inputArea.selectionEnd;
+            }
+            else if (doc.selection) {
+
+                stateObj.text = util.fixEolChars(inputArea.value);
+
+                // IE loses the selection in the textarea when buttons are
+                // clicked.  On IE we cache the selection. Here, if something is cached,
+                // we take it.
+                var range = panels.ieCachedRange || doc.selection.createRange();
+
+                var fixedRange = util.fixEolChars(range.text);
+                var marker = "\x07";
+                var markedRange = marker + fixedRange + marker;
+                range.text = markedRange;
+                var inputText = util.fixEolChars(inputArea.value);
+
+                range.moveStart("character", -markedRange.length);
+                range.text = fixedRange;
+
+                stateObj.start = inputText.indexOf(marker);
+                stateObj.end = inputText.lastIndexOf(marker) - marker.length;
+
+                var len = stateObj.text.length - util.fixEolChars(inputArea.value).length;
+
+                if (len) {
+                    range.moveStart("character", -fixedRange.length);
+                    while (len--) {
+                        fixedRange += "\n";
+                        stateObj.end += 1;
+                    }
+                    range.text = fixedRange;
+                }
+
+                if (panels.ieCachedRange)
+                    stateObj.scrollTop = panels.ieCachedScrollTop; // this is set alongside with ieCachedRange
+
+                panels.ieCachedRange = null;
+
+                this.setInputAreaSelection();
+            }
+        };
+
+        // Restore this state into the input area.
+        this.restore = function () {
+
+            if (stateObj.text != undefined && stateObj.text != inputArea.value) {
+                inputArea.value = stateObj.text;
+            }
+            this.setInputAreaSelection();
+            inputArea.scrollTop = stateObj.scrollTop;
+        };
+
+        // Gets a collection of HTML chunks from the inptut textarea.
+        this.getChunks = function () {
+
+            var chunk = new Chunks();
+            chunk.before = util.fixEolChars(stateObj.text.substring(0, stateObj.start));
+            chunk.startTag = "";
+            chunk.selection = util.fixEolChars(stateObj.text.substring(stateObj.start, stateObj.end));
+            chunk.endTag = "";
+            chunk.after = util.fixEolChars(stateObj.text.substring(stateObj.end));
+            chunk.scrollTop = stateObj.scrollTop;
+
+            return chunk;
+        };
+
+        // Sets the TextareaState properties given a chunk of markdown.
+        this.setChunks = function (chunk) {
+
+            chunk.before = chunk.before + chunk.startTag;
+            chunk.after = chunk.endTag + chunk.after;
+
+            this.start = chunk.before.length;
+            this.end = chunk.before.length + chunk.selection.length;
+            this.text = chunk.before + chunk.selection + chunk.after;
+            this.scrollTop = chunk.scrollTop;
+        };
+        this.init();
+    };
+
+    function PreviewManager(converter, panels, previewRefreshCallback) {
+
+        var managerObj = this;
+        var timeout;
+        var elapsedTime;
+        var oldInputText;
+        var maxDelay = 3000;
+        var startType = "delayed"; // The other legal value is "manual"
+
+        // Adds event listeners to elements
+        var setupEvents = function (inputElem, listener) {
+
+            util.addEvent(inputElem, "input", listener);
+            inputElem.onpaste = listener;
+            inputElem.ondrop = listener;
+
+            util.addEvent(inputElem, "keypress", listener);
+            util.addEvent(inputElem, "keydown", listener);
+        };
+
+        var getDocScrollTop = function () {
+
+            var result = 0;
+
+            if (window.innerHeight) {
+                result = window.pageYOffset;
+            }
+            else
+            if (doc.documentElement && doc.documentElement.scrollTop) {
+                result = doc.documentElement.scrollTop;
+            }
+            else
+            if (doc.body) {
+                result = doc.body.scrollTop;
+            }
+
+            return result;
+        };
+
+        var makePreviewHtml = function () {
+
+            // If there is no registered preview panel
+            // there is nothing to do.
+            if (!panels.preview)
+                return;
+
+
+            var text = panels.input.value;
+            if (text && text == oldInputText) {
+                return; // Input text hasn't changed.
+            }
+            else {
+                oldInputText = text;
+            }
+
+            var prevTime = new Date().getTime();
+
+            text = converter.makeHtml(text);
+
+            // Calculate the processing time of the HTML creation.
+            // It's used as the delay time in the event listener.
+            var currTime = new Date().getTime();
+            elapsedTime = currTime - prevTime;
+
+            pushPreviewHtml(text);
+        };
+
+        // setTimeout is already used.  Used as an event listener.
+        var applyTimeout = function () {
+
+            if (timeout) {
+                clearTimeout(timeout);
+                timeout = undefined;
+            }
+
+            if (startType !== "manual") {
+
+                var delay = 0;
+
+                if (startType === "delayed") {
+                    delay = elapsedTime;
+                }
+
+                if (delay > maxDelay) {
+                    delay = maxDelay;
+                }
+                timeout = setTimeout(makePreviewHtml, delay);
+            }
+        };
+
+        var getScaleFactor = function (panel) {
+            if (panel.scrollHeight <= panel.clientHeight) {
+                return 1;
+            }
+            return panel.scrollTop / (panel.scrollHeight - panel.clientHeight);
+        };
+
+        var setPanelScrollTops = function () {
+            if (panels.preview) {
+                panels.preview.scrollTop = (panels.preview.scrollHeight - panels.preview.clientHeight) * getScaleFactor(panels.preview);
+            }
+        };
+
+        this.refresh = function (requiresRefresh) {
+
+            if (requiresRefresh) {
+                oldInputText = "";
+                makePreviewHtml();
+            }
+            else {
+                applyTimeout();
+            }
+        };
+
+        this.processingTime = function () {
+            return elapsedTime;
+        };
+
+        var isFirstTimeFilled = true;
+
+        // IE doesn't let you use innerHTML if the element is contained somewhere in a table
+        // (which is the case for inline editing) -- in that case, detach the element, set the
+        // value, and reattach. Yes, that *is* ridiculous.
+        var ieSafePreviewSet = function (text) {
+            var preview = panels.preview;
+            var parent = preview.parentNode;
+            var sibling = preview.nextSibling;
+            parent.removeChild(preview);
+            preview.innerHTML = text;
+            if (!sibling)
+                parent.appendChild(preview);
+            else
+                parent.insertBefore(preview, sibling);
+        }
+
+        var nonSuckyBrowserPreviewSet = function (text) {
+            panels.preview.innerHTML = text;
+        }
+
+        var previewSetter;
+
+        var previewSet = function (text) {
+            if (previewSetter)
+                return previewSetter(text);
+
+            try {
+                nonSuckyBrowserPreviewSet(text);
+                previewSetter = nonSuckyBrowserPreviewSet;
+            } catch (e) {
+                previewSetter = ieSafePreviewSet;
+                previewSetter(text);
+            }
+        };
+
+        var pushPreviewHtml = function (text) {
+
+            var emptyTop = position.getTop(panels.input) - getDocScrollTop();
+
+            if (panels.preview) {
+                previewSet(text);
+                previewRefreshCallback();
+            }
+
+            setPanelScrollTops();
+
+            if (isFirstTimeFilled) {
+                isFirstTimeFilled = false;
+                return;
+            }
+
+            var fullTop = position.getTop(panels.input) - getDocScrollTop();
+
+            if (uaSniffed.isIE) {
+                setTimeout(function () {
+                    window.scrollBy(0, fullTop - emptyTop);
+                }, 0);
+            }
+            else {
+                window.scrollBy(0, fullTop - emptyTop);
+            }
+        };
+
+        var init = function () {
+
+            setupEvents(panels.input, applyTimeout);
+            makePreviewHtml();
+
+            if (panels.preview) {
+                panels.preview.scrollTop = 0;
+            }
+        };
+
+        init();
+    };
+
+
+    // This simulates a modal dialog box and asks for the URL when you
+    // click the hyperlink or image buttons.
+    //
+    // text: The html for the input box.
+    // defaultInputText: The default value that appears in the input box.
+    // callback: The function which is executed when the prompt is dismissed, either via OK or Cancel.
+    //      It receives a single argument; either the entered text (if OK was chosen) or null (if Cancel
+    //      was chosen).
+    ui.prompt = function (title, text, defaultInputText, callback) {
+
+        // These variables need to be declared at this level since they are used
+        // in multiple functions.
+        var dialog;         // The dialog box.
+        var input;         // The text box where you enter the hyperlink.
+
+
+        if (defaultInputText === undefined) {
+            defaultInputText = "";
+        }
+
+        // Used as a keydown event handler. Esc dismisses the prompt.
+        // Key code 27 is ESC.
+        var checkEscape = function (key) {
+            var code = (key.charCode || key.keyCode);
+            if (code === 27) {
+                close(true);
+            }
+        };
+
+        // Dismisses the hyperlink input box.
+        // isCancel is true if we don't care about the input text.
+        // isCancel is false if we are going to keep the text.
+        var close = function (isCancel) {
+            util.removeEvent(doc.body, "keydown", checkEscape);
+            var text = input.value;
+
+            if (isCancel) {
+                text = null;
+            }
+            else {
+                // Fixes common pasting errors.
+                text = text.replace(/^http:\/\/(https?|ftp):\/\//, '$1://');
+                if (!/^(?:https?|ftp):\/\//.test(text))
+                    text = 'http://' + text;
+            }
+
+            $(dialog).modal('hide');
+
+            callback(text);
+            return false;
+        };
+
+
+
+        // Create the text input box form/window.
+        var createDialog = function () {
+            // <div class="modal" id="myModal">
+            //   <div class="modal-header">
+            //     <a class="close" data-dismiss="modal">×</a>
+            //     <h3>Modal header</h3>
+            //   </div>
+            //   <div class="modal-body">
+            //     <p>One fine body…</p>
+            //   </div>
+            //   <div class="modal-footer">
+            //     <a href="#" class="btn btn-primary">Save changes</a>
+            //     <a href="#" class="btn">Close</a>
+            //   </div>
+            // </div>
+
+            // The main dialog box.
+            dialog = doc.createElement("div");
+            dialog.className = "modal fade";
+
+            // The modal-dialog div.
+            var div_dialog = doc.createElement("div");
+            div_dialog.className = "modal-dialog";
+            dialog.appendChild(div_dialog);
+
+            // The modal-content div.
+            var content = doc.createElement("div");
+            content.className = "modal-content";
+            div_dialog.appendChild(content);
+
+            // The header.
+            var header = doc.createElement("div");
+            header.className = "modal-header";
+            header.innerHTML = '<a class="close" data-dismiss="modal">×</a> <h3 class="modal-title">'+title+'</h3>';
+            content.appendChild(header);
+
+            // The body.
+            var body = doc.createElement("div");
+            body.className = "modal-body";
+            content.appendChild(body);
+
+            // The footer.
+            var footer = doc.createElement("div");
+            footer.className = "modal-footer";
+            content.appendChild(footer);
+
+            // The dialog text.
+            var question = doc.createElement("p");
+            question.innerHTML = text;
+            question.style.padding = "5px";
+            body.appendChild(question);
+
+            // The web form container for the text box and buttons.
+            var form = doc.createElement("form"),
+                style = form.style;
+            form.onsubmit = function () { return close(false); };
+            style.padding = "0";
+            style.margin = "0";
+            body.appendChild(form);
+
+            // The input text box
+            input = doc.createElement("input");
+            input.type = "text";
+            input.value = defaultInputText;
+            input.className = "form-control";
+            style = input.style;
+            style.display = "block";
+            style.width = "80%";
+            style.marginLeft = style.marginRight = "auto";
+            form.appendChild(input);
+
+            // The ok button
+            var okButton = doc.createElement("button");
+            okButton.className = "btn btn-primary";
+            okButton.type = "button";
+            okButton.onclick = function () { return close(false); };
+            okButton.innerHTML = "OK";
+
+            // The cancel button
+            var cancelButton = doc.createElement("button");
+            cancelButton.className = "btn btn-danger";
+            cancelButton.type = "button";
+            cancelButton.onclick = function () { return close(true); };
+            cancelButton.innerHTML = "Cancel";
+
+            footer.appendChild(okButton);
+            footer.appendChild(cancelButton);
+
+            util.addEvent(doc.body, "keydown", checkEscape);
+
+            doc.body.appendChild(dialog);
+
+        };
+
+        // Why is this in a zero-length timeout?
+        // Is it working around a browser bug?
+        setTimeout(function () {
+
+            createDialog();
+
+            var defTextLen = defaultInputText.length;
+            if (input.selectionStart !== undefined) {
+                input.selectionStart = 0;
+                input.selectionEnd = defTextLen;
+            }
+            else if (input.createTextRange) {
+                var range = input.createTextRange();
+                range.collapse(false);
+                range.moveStart("character", -defTextLen);
+                range.moveEnd("character", defTextLen);
+                range.select();
+            }
+
+            $(dialog).on('shown', function () {
+                input.focus();
+            })
+
+            $(dialog).on('hidden', function () {
+                dialog.parentNode.removeChild(dialog);
+            })
+
+            $(dialog).modal()
+
+        }, 0);
+    };
+
+    function UIManager(postfix, panels, undoManager, previewManager, commandManager, helpOptions) {
+
+        var inputBox = panels.input,
+            buttons = {}; // buttons.undo, buttons.link, etc. The actual DOM elements.
+
+        makeSpritedButtonRow();
+
+        var keyEvent = "keydown";
+        if (uaSniffed.isOpera) {
+            keyEvent = "keypress";
+        }
+
+        util.addEvent(inputBox, keyEvent, function (key) {
+
+            // Check to see if we have a button key and, if so execute the callback.
+            if ((key.ctrlKey || key.metaKey) && !key.altKey && !key.shiftKey) {
+
+                var keyCode = key.charCode || key.keyCode;
+                var keyCodeStr = String.fromCharCode(keyCode).toLowerCase();
+
+                switch (keyCodeStr) {
+                    case "b":
+                        doClick(buttons.bold);
+                        break;
+                    case "i":
+                        doClick(buttons.italic);
+                        break;
+                    case "l":
+                        doClick(buttons.link);
+                        break;
+                    case "q":
+                        doClick(buttons.quote);
+                        break;
+                    case "k":
+                        doClick(buttons.code);
+                        break;
+                    case "g":
+                        doClick(buttons.image);
+                        break;
+                    case "o":
+                        doClick(buttons.olist);
+                        break;
+                    case "u":
+                        doClick(buttons.ulist);
+                        break;
+                    case "h":
+                        doClick(buttons.heading);
+                        break;
+                    case "r":
+                        doClick(buttons.hr);
+                        break;
+                    case "y":
+                        doClick(buttons.redo);
+                        break;
+                    case "z":
+                        if (key.shiftKey) {
+                            doClick(buttons.redo);
+                        }
+                        else {
+                            doClick(buttons.undo);
+                        }
+                        break;
+                    default:
+                        return;
+                }
+
+
+                if (key.preventDefault) {
+                    key.preventDefault();
+                }
+
+                if (window.event) {
+                    window.event.returnValue = false;
+                }
+            }
+        });
+
+        // Auto-indent on shift-enter
+        util.addEvent(inputBox, "keyup", function (key) {
+            if (key.shiftKey && !key.ctrlKey && !key.metaKey) {
+                var keyCode = key.charCode || key.keyCode;
+                // Character 13 is Enter
+                if (keyCode === 13) {
+                    var fakeButton = {};
+                    fakeButton.textOp = bindCommand("doAutoindent");
+                    doClick(fakeButton);
+                }
+            }
+        });
+
+        // special handler because IE clears the context of the textbox on ESC
+        if (uaSniffed.isIE) {
+            util.addEvent(inputBox, "keydown", function (key) {
+                var code = key.keyCode;
+                if (code === 27) {
+                    return false;
+                }
+            });
+        }
+
+
+        // Perform the button's action.
+        function doClick(button) {
+
+            inputBox.focus();
+
+            if (button.textOp) {
+
+                if (undoManager) {
+                    undoManager.setCommandMode();
+                }
+
+                var state = new TextareaState(panels);
+
+                if (!state) {
+                    return;
+                }
+
+                var chunks = state.getChunks();
+
+                // Some commands launch a "modal" prompt dialog.  Javascript
+                // can't really make a modal dialog box and the WMD code
+                // will continue to execute while the dialog is displayed.
+                // This prevents the dialog pattern I'm used to and means
+                // I can't do something like this:
+                //
+                // var link = CreateLinkDialog();
+                // makeMarkdownLink(link);
+                //
+                // Instead of this straightforward method of handling a
+                // dialog I have to pass any code which would execute
+                // after the dialog is dismissed (e.g. link creation)
+                // in a function parameter.
+                //
+                // Yes this is awkward and I think it sucks, but there's
+                // no real workaround.  Only the image and link code
+                // create dialogs and require the function pointers.
+                var fixupInputArea = function () {
+
+                    inputBox.focus();
+
+                    if (chunks) {
+                        state.setChunks(chunks);
+                    }
+
+                    state.restore();
+                    previewManager.refresh();
+                };
+
+                var noCleanup = button.textOp(chunks, fixupInputArea);
+
+                if (!noCleanup) {
+                    fixupInputArea();
+                }
+
+            }
+
+            if (button.execute) {
+                button.execute(undoManager);
+            }
+        };
+
+        function setupButton(button, isEnabled) {
+
+            if (isEnabled) {
+                button.disabled = false;
+
+                if (!button.isHelp) {
+                    button.onclick = function () {
+                        if (this.onmouseout) {
+                            this.onmouseout();
+                        }
+                        doClick(this);
+                        return false;
+                    }
+                }
+            }
+            else {
+                button.disabled = true;
+            }
+        }
+
+        function bindCommand(method) {
+            if (typeof method === "string")
+                method = commandManager[method];
+            return function () { method.apply(commandManager, arguments); }
+        }
+
+        function makeSpritedButtonRow() {
+
+            var buttonBar = panels.buttonBar;
+            var buttonRow = document.createElement("div");
+            buttonRow.id = "wmd-button-row" + postfix;
+            buttonRow.className = 'btn-toolbar';
+            buttonRow = buttonBar.appendChild(buttonRow);
+
+            var makeButton = function (id, title, icon, textOp, group) {
+                var button = document.createElement("button");
+                button.className = "btn btn-default";
+                var buttonImage = document.createElement("i");
+                buttonImage.className = icon;
+                button.id = id + postfix;
+                button.appendChild(buttonImage);
+                button.title = title;
+                $(button).tooltip({placement: 'bottom', container: 'body'})
+                if (textOp)
+                    button.textOp = textOp;
+                setupButton(button, true);
+                if (group) {
+                    group.appendChild(button);
+                } else {
+                    buttonRow.appendChild(button);
+                }
+                return button;
+            };
+            var makeGroup = function (num) {
+                var group = document.createElement("div");
+                group.className = "btn-group wmd-button-group" + num;
+                group.id = "wmd-button-group" + num + postfix;
+                buttonRow.appendChild(group);
+                return group
+            }
+
+            group1 = makeGroup(1);
+            buttons.bold = makeButton("wmd-bold-button", "Bold - Ctrl+B", "fa fa-bold", bindCommand("doBold"), group1);
+            buttons.italic = makeButton("wmd-italic-button", "Italic - Ctrl+I", "fa fa-italic", bindCommand("doItalic"), group1);
+
+            group2 = makeGroup(2);
+            buttons.link = makeButton("wmd-link-button", "Link - Ctrl+L", "fa fa-link", bindCommand(function (chunk, postProcessing) {
+                return this.doLinkOrImage(chunk, postProcessing, false);
+            }), group2);
+            buttons.quote = makeButton("wmd-quote-button", "Blockquote - Ctrl+Q", "fa fa-quote-left", bindCommand("doBlockquote"), group2);
+            buttons.code = makeButton("wmd-code-button", "Code Sample - Ctrl+K", "fa fa-code", bindCommand("doCode"), group2);
+            buttons.image = makeButton("wmd-image-button", "Image - Ctrl+G", "fa fa-picture-o", bindCommand(function (chunk, postProcessing) {
+                return this.doLinkOrImage(chunk, postProcessing, true);
+            }), group2);
+
+            group3 = makeGroup(3);
+            buttons.olist = makeButton("wmd-olist-button", "Numbered List - Ctrl+O", "fa fa-list-ol", bindCommand(function (chunk, postProcessing) {
+                this.doList(chunk, postProcessing, true);
+            }), group3);
+            buttons.ulist = makeButton("wmd-ulist-button", "Bulleted List - Ctrl+U", "fa fa-list-ul", bindCommand(function (chunk, postProcessing) {
+                this.doList(chunk, postProcessing, false);
+            }), group3);
+            buttons.heading = makeButton("wmd-heading-button", "Heading - Ctrl+H", "fa fa-header", bindCommand("doHeading"), group3);
+            buttons.hr = makeButton("wmd-hr-button", "Horizontal Rule - Ctrl+R", "fa fa-ellipsis-h", bindCommand("doHorizontalRule"), group3);
+
+            group4 = makeGroup(4);
+            buttons.undo = makeButton("wmd-undo-button", "Undo - Ctrl+Z", "fa fa-undo", null, group4);
+            buttons.undo.execute = function (manager) { if (manager) manager.undo(); };
+
+            var redoTitle = /win/.test(nav.platform.toLowerCase()) ?
+                "Redo - Ctrl+Y" :
+                "Redo - Ctrl+Shift+Z"; // mac and other non-Windows platforms
+
+            buttons.redo = makeButton("wmd-redo-button", redoTitle, "fa fa-rotate-right", null, group4);
+            buttons.redo.execute = function (manager) { if (manager) manager.redo(); };
+
+            if (helpOptions) {
+                group5 = makeGroup(5);
+                group5.className = group5.className + " pull-right";
+                var helpButton = document.createElement("button");
+                var helpButtonImage = document.createElement("i");
+                helpButtonImage.className = "fa fa-question";
+                helpButton.appendChild(helpButtonImage);
+                helpButton.className = "btn";
+                helpButton.id = "wmd-help-button" + postfix;
+                helpButton.isHelp = true;
+                helpButton.title = helpOptions.title || defaultHelpHoverTitle;
+                $(helpButton).tooltip({placement: 'bottom', container: 'body'})
+                helpButton.onclick = helpOptions.handler;
+
+                setupButton(helpButton, true);
+                group5.appendChild(helpButton);
+                buttons.help = helpButton;
+            }
+
+            setUndoRedoButtonStates();
+        }
+
+        function setUndoRedoButtonStates() {
+            if (undoManager) {
+                setupButton(buttons.undo, undoManager.canUndo());
+                setupButton(buttons.redo, undoManager.canRedo());
+            }
+        };
+
+        this.setUndoRedoButtonStates = setUndoRedoButtonStates;
+
+    }
+
+    function CommandManager(pluginHooks) {
+        this.hooks = pluginHooks;
+    }
+
+    var commandProto = CommandManager.prototype;
+
+    // The markdown symbols - 4 spaces = code, > = blockquote, etc.
+    commandProto.prefixes = "(?:\\s{4,}|\\s*>|\\s*-\\s+|\\s*\\d+\\.|=|\\+|-|_|\\*|#|\\s*\\[[^\n]]+\\]:)";
+
+    // Remove markdown symbols from the chunk selection.
+    commandProto.unwrap = function (chunk) {
+        var txt = new re("([^\\n])\\n(?!(\\n|" + this.prefixes + "))", "g");
+        chunk.selection = chunk.selection.replace(txt, "$1 $2");
+    };
+
+    commandProto.wrap = function (chunk, len) {
+        this.unwrap(chunk);
+        var regex = new re("(.{1," + len + "})( +|$\\n?)", "gm"),
+            that = this;
+
+        chunk.selection = chunk.selection.replace(regex, function (line, marked) {
+            if (new re("^" + that.prefixes, "").test(line)) {
+                return line;
+            }
+            return marked + "\n";
+        });
+
+        chunk.selection = chunk.selection.replace(/\s+$/, "");
+    };
+
+    commandProto.doBold = function (chunk, postProcessing) {
+        return this.doBorI(chunk, postProcessing, 2, "strong text");
+    };
+
+    commandProto.doItalic = function (chunk, postProcessing) {
+        return this.doBorI(chunk, postProcessing, 1, "emphasized text");
+    };
+
+    // chunk: The selected region that will be enclosed with */**
+    // nStars: 1 for italics, 2 for bold
+    // insertText: If you just click the button without highlighting text, this gets inserted
+    commandProto.doBorI = function (chunk, postProcessing, nStars, insertText) {
+
+        // Get rid of whitespace and fixup newlines.
+        chunk.trimWhitespace();
+        chunk.selection = chunk.selection.replace(/\n{2,}/g, "\n");
+
+        // Look for stars before and after.  Is the chunk already marked up?
+        // note that these regex matches cannot fail
+        var starsBefore = /(\**$)/.exec(chunk.before)[0];
+        var starsAfter = /(^\**)/.exec(chunk.after)[0];
+
+        var prevStars = Math.min(starsBefore.length, starsAfter.length);
+
+        // Remove stars if we have to since the button acts as a toggle.
+        if ((prevStars >= nStars) && (prevStars != 2 || nStars != 1)) {
+            chunk.before = chunk.before.replace(re("[*]{" + nStars + "}$", ""), "");
+            chunk.after = chunk.after.replace(re("^[*]{" + nStars + "}", ""), "");
+        }
+        else if (!chunk.selection && starsAfter) {
+            // It's not really clear why this code is necessary.  It just moves
+            // some arbitrary stuff around.
+            chunk.after = chunk.after.replace(/^([*_]*)/, "");
+            chunk.before = chunk.before.replace(/(\s?)$/, "");
+            var whitespace = re.$1;
+            chunk.before = chunk.before + starsAfter + whitespace;
+        }
+        else {
+
+            // In most cases, if you don't have any selected text and click the button
+            // you'll get a selected, marked up region with the default text inserted.
+            if (!chunk.selection && !starsAfter) {
+                chunk.selection = insertText;
+            }
+
+            // Add the true markup.
+            var markup = nStars <= 1 ? "*" : "**"; // shouldn't the test be = ?
+            chunk.before = chunk.before + markup;
+            chunk.after = markup + chunk.after;
+        }
+
+        return;
+    };
+
+    commandProto.stripLinkDefs = function (text, defsToAdd) {
+
+        text = text.replace(/^[ ]{0,3}\[(\d+)\]:[ \t]*\n?[ \t]*<?(\S+?)>?[ \t]*\n?[ \t]*(?:(\n*)["(](.+?)[")][ \t]*)?(?:\n+|$)/gm,
+            function (totalMatch, id, link, newlines, title) {
+                defsToAdd[id] = totalMatch.replace(/\s*$/, "");
+                if (newlines) {
+                    // Strip the title and return that separately.
+                    defsToAdd[id] = totalMatch.replace(/["(](.+?)[")]$/, "");
+                    return newlines + title;
+                }
+                return "";
+            });
+
+        return text;
+    };
+
+    commandProto.addLinkDef = function (chunk, linkDef) {
+
+        var refNumber = 0; // The current reference number
+        var defsToAdd = {}; //
+        // Start with a clean slate by removing all previous link definitions.
+        chunk.before = this.stripLinkDefs(chunk.before, defsToAdd);
+        chunk.selection = this.stripLinkDefs(chunk.selection, defsToAdd);
+        chunk.after = this.stripLinkDefs(chunk.after, defsToAdd);
+
+        var defs = "";
+        var regex = /(\[)((?:\[[^\]]*\]|[^\[\]])*)(\][ ]?(?:\n[ ]*)?\[)(\d+)(\])/g;
+
+        var addDefNumber = function (def) {
+            refNumber++;
+            def = def.replace(/^[ ]{0,3}\[(\d+)\]:/, "  [" + refNumber + "]:");
+            defs += "\n" + def;
+        };
+
+        // note that
+        // a) the recursive call to getLink cannot go infinite, because by definition
+        //    of regex, inner is always a proper substring of wholeMatch, and
+        // b) more than one level of nesting is neither supported by the regex
+        //    nor making a lot of sense (the only use case for nesting is a linked image)
+        var getLink = function (wholeMatch, before, inner, afterInner, id, end) {
+            inner = inner.replace(regex, getLink);
+            if (defsToAdd[id]) {
+                addDefNumber(defsToAdd[id]);
+                return before + inner + afterInner + refNumber + end;
+            }
+            return wholeMatch;
+        };
+
+        chunk.before = chunk.before.replace(regex, getLink);
+
+        if (linkDef) {
+            addDefNumber(linkDef);
+        }
+        else {
+            chunk.selection = chunk.selection.replace(regex, getLink);
+        }
+
+        var refOut = refNumber;
+
+        chunk.after = chunk.after.replace(regex, getLink);
+
+        if (chunk.after) {
+            chunk.after = chunk.after.replace(/\n*$/, "");
+        }
+        if (!chunk.after) {
+            chunk.selection = chunk.selection.replace(/\n*$/, "");
+        }
+
+        chunk.after += "\n\n" + defs;
+
+        return refOut;
+    };
+
+    // takes the line as entered into the add link/as image dialog and makes
+    // sure the URL and the optinal title are "nice".
+    function properlyEncoded(linkdef) {
+        return linkdef.replace(/^\s*(.*?)(?:\s+"(.+)")?\s*$/, function (wholematch, link, title) {
+            link = link.replace(/\?.*$/, function (querypart) {
+                return querypart.replace(/\+/g, " "); // in the query string, a plus and a space are identical
+            });
+            link = decodeURIComponent(link); // unencode first, to prevent double encoding
+            link = encodeURI(link).replace(/'/g, '%27').replace(/\(/g, '%28').replace(/\)/g, '%29');
+            link = link.replace(/\?.*$/, function (querypart) {
+                return querypart.replace(/\+/g, "%2b"); // since we replaced plus with spaces in the query part, all pluses that now appear where originally encoded
+            });
+            if (title) {
+                title = title.trim ? title.trim() : title.replace(/^\s*/, "").replace(/\s*$/, "");
+                title = $.trim(title).replace(/"/g, "quot;").replace(/\(/g, "&#40;").replace(/\)/g, "&#41;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            }
+            return title ? link + ' "' + title + '"' : link;
+        });
+    }
+
+    commandProto.doLinkOrImage = function (chunk, postProcessing, isImage) {
+
+        chunk.trimWhitespace();
+        chunk.findTags(/\s*!?\[/, /\][ ]?(?:\n[ ]*)?(\[.*?\])?/);
+        var background;
+
+        if (chunk.endTag.length > 1 && chunk.startTag.length > 0) {
+
+            chunk.startTag = chunk.startTag.replace(/!?\[/, "");
+            chunk.endTag = "";
+            this.addLinkDef(chunk, null);
+
+        }
+        else {
+
+            // We're moving start and end tag back into the selection, since (as we're in the else block) we're not
+            // *removing* a link, but *adding* one, so whatever findTags() found is now back to being part of the
+            // link text. linkEnteredCallback takes care of escaping any brackets.
+            chunk.selection = chunk.startTag + chunk.selection + chunk.endTag;
+            chunk.startTag = chunk.endTag = "";
+
+            if (/\n\n/.test(chunk.selection)) {
+                this.addLinkDef(chunk, null);
+                return;
+            }
+            var that = this;
+            // The function to be executed when you enter a link and press OK or Cancel.
+            // Marks up the link and adds the ref.
+            var linkEnteredCallback = function (link) {
+
+                if (link !== null) {
+                    // (                          $1
+                    //     [^\\]                  anything that's not a backslash
+                    //     (?:\\\\)*              an even number (this includes zero) of backslashes
+                    // )
+                    // (?=                        followed by
+                    //     [[\]]                  an opening or closing bracket
+                    // )
+                    //
+                    // In other words, a non-escaped bracket. These have to be escaped now to make sure they
+                    // don't count as the end of the link or similar.
+                    // Note that the actual bracket has to be a lookahead, because (in case of to subsequent brackets),
+                    // the bracket in one match may be the "not a backslash" character in the next match, so it
+                    // should not be consumed by the first match.
+                    // The "prepend a space and finally remove it" steps makes sure there is a "not a backslash" at the
+                    // start of the string, so this also works if the selection begins with a bracket. We cannot solve
+                    // this by anchoring with ^, because in the case that the selection starts with two brackets, this
+                    // would mean a zero-width match at the start. Since zero-width matches advance the string position,
+                    // the first bracket could then not act as the "not a backslash" for the second.
+                    chunk.selection = (" " + chunk.selection).replace(/([^\\](?:\\\\)*)(?=[[\]])/g, "$1\\").substr(1);
+
+                    var linkDef = " [999]: " + properlyEncoded(link);
+
+                    var num = that.addLinkDef(chunk, linkDef);
+                    chunk.startTag = isImage ? "![" : "[";
+                    chunk.endTag = "][" + num + "]";
+
+                    if (!chunk.selection) {
+                        if (isImage) {
+                            chunk.selection = "enter image description here";
+                        }
+                        else {
+                            chunk.selection = "enter link description here";
+                        }
+                    }
+                }
+                postProcessing();
+            };
+
+
+            if (isImage) {
+                if (!this.hooks.insertImageDialog(linkEnteredCallback))
+                    ui.prompt('Insert Image', imageDialogText, imageDefaultText, linkEnteredCallback);
+            }
+            else {
+                ui.prompt('Insert Link', linkDialogText, linkDefaultText, linkEnteredCallback);
+            }
+            return true;
+        }
+    };
+
+    // When making a list, hitting shift-enter will put your cursor on the next line
+    // at the current indent level.
+    commandProto.doAutoindent = function (chunk, postProcessing) {
+
+        var commandMgr = this,
+            fakeSelection = false;
+
+        chunk.before = chunk.before.replace(/(\n|^)[ ]{0,3}([*+-]|\d+[.])[ \t]*\n$/, "\n\n");
+        chunk.before = chunk.before.replace(/(\n|^)[ ]{0,3}>[ \t]*\n$/, "\n\n");
+        chunk.before = chunk.before.replace(/(\n|^)[ \t]+\n$/, "\n\n");
+
+        // There's no selection, end the cursor wasn't at the end of the line:
+        // The user wants to split the current list item / code line / blockquote line
+        // (for the latter it doesn't really matter) in two. Temporarily select the
+        // (rest of the) line to achieve this.
+        if (!chunk.selection && !/^[ \t]*(?:\n|$)/.test(chunk.after)) {
+            chunk.after = chunk.after.replace(/^[^\n]*/, function (wholeMatch) {
+                chunk.selection = wholeMatch;
+                return "";
+            });
+            fakeSelection = true;
+        }
+
+        if (/(\n|^)[ ]{0,3}([*+-]|\d+[.])[ \t]+.*\n$/.test(chunk.before)) {
+            if (commandMgr.doList) {
+                commandMgr.doList(chunk);
+            }
+        }
+        if (/(\n|^)[ ]{0,3}>[ \t]+.*\n$/.test(chunk.before)) {
+            if (commandMgr.doBlockquote) {
+                commandMgr.doBlockquote(chunk);
+            }
+        }
+        if (/(\n|^)(\t|[ ]{4,}).*\n$/.test(chunk.before)) {
+            if (commandMgr.doCode) {
+                commandMgr.doCode(chunk);
+            }
+        }
+
+        if (fakeSelection) {
+            chunk.after = chunk.selection + chunk.after;
+            chunk.selection = "";
+        }
+    };
+
+    commandProto.doBlockquote = function (chunk, postProcessing) {
+
+        chunk.selection = chunk.selection.replace(/^(\n*)([^\r]+?)(\n*)$/,
+            function (totalMatch, newlinesBefore, text, newlinesAfter) {
+                chunk.before += newlinesBefore;
+                chunk.after = newlinesAfter + chunk.after;
+                return text;
+            });
+
+        chunk.before = chunk.before.replace(/(>[ \t]*)$/,
+            function (totalMatch, blankLine) {
+                chunk.selection = blankLine + chunk.selection;
+                return "";
+            });
+
+        chunk.selection = chunk.selection.replace(/^(\s|>)+$/, "");
+        chunk.selection = chunk.selection || "Blockquote";
+
+        // The original code uses a regular expression to find out how much of the
+        // text *directly before* the selection already was a blockquote:
+
+        /*
+         if (chunk.before) {
+         chunk.before = chunk.before.replace(/\n?$/, "\n");
+         }
+         chunk.before = chunk.before.replace(/(((\n|^)(\n[ \t]*)*>(.+\n)*.*)+(\n[ \t]*)*$)/,
+         function (totalMatch) {
+         chunk.startTag = totalMatch;
+         return "";
+         });
+         */
+
+        // This comes down to:
+        // Go backwards as many lines a possible, such that each line
+        //  a) starts with ">", or
+        //  b) is almost empty, except for whitespace, or
+        //  c) is preceeded by an unbroken chain of non-empty lines
+        //     leading up to a line that starts with ">" and at least one more character
+        // and in addition
+        //  d) at least one line fulfills a)
+        //
+        // Since this is essentially a backwards-moving regex, it's susceptible to
+        // catstrophic backtracking and can cause the browser to hang;
+        // see e.g. http://meta.stackoverflow.com/questions/9807.
+        //
+        // Hence we replaced this by a simple state machine that just goes through the
+        // lines and checks for a), b), and c).
+
+        var match = "",
+            leftOver = "",
+            line;
+        if (chunk.before) {
+            var lines = chunk.before.replace(/\n$/, "").split("\n");
+            var inChain = false;
+            for (var i = 0; i < lines.length; i++) {
+                var good = false;
+                line = lines[i];
+                inChain = inChain && line.length > 0; // c) any non-empty line continues the chain
+                if (/^>/.test(line)) {                // a)
+                    good = true;
+                    if (!inChain && line.length > 1)  // c) any line that starts with ">" and has at least one more character starts the chain
+                        inChain = true;
+                } else if (/^[ \t]*$/.test(line)) {   // b)
+                    good = true;
+                } else {
+                    good = inChain;                   // c) the line is not empty and does not start with ">", so it matches if and only if we're in the chain
+                }
+                if (good) {
+                    match += line + "\n";
+                } else {
+                    leftOver += match + line;
+                    match = "\n";
+                }
+            }
+            if (!/(^|\n)>/.test(match)) {             // d)
+                leftOver += match;
+                match = "";
+            }
+        }
+
+        chunk.startTag = match;
+        chunk.before = leftOver;
+
+        // end of change
+
+        if (chunk.after) {
+            chunk.after = chunk.after.replace(/^\n?/, "\n");
+        }
+
+        chunk.after = chunk.after.replace(/^(((\n|^)(\n[ \t]*)*>(.+\n)*.*)+(\n[ \t]*)*)/,
+            function (totalMatch) {
+                chunk.endTag = totalMatch;
+                return "";
+            }
+        );
+
+        var replaceBlanksInTags = function (useBracket) {
+
+            var replacement = useBracket ? "> " : "";
+
+            if (chunk.startTag) {
+                chunk.startTag = chunk.startTag.replace(/\n((>|\s)*)\n$/,
+                    function (totalMatch, markdown) {
+                        return "\n" + markdown.replace(/^[ ]{0,3}>?[ \t]*$/gm, replacement) + "\n";
+                    });
+            }
+            if (chunk.endTag) {
+                chunk.endTag = chunk.endTag.replace(/^\n((>|\s)*)\n/,
+                    function (totalMatch, markdown) {
+                        return "\n" + markdown.replace(/^[ ]{0,3}>?[ \t]*$/gm, replacement) + "\n";
+                    });
+            }
+        };
+
+        if (/^(?![ ]{0,3}>)/m.test(chunk.selection)) {
+            this.wrap(chunk, SETTINGS.lineLength - 2);
+            chunk.selection = chunk.selection.replace(/^/gm, "> ");
+            replaceBlanksInTags(true);
+            chunk.skipLines();
+        } else {
+            chunk.selection = chunk.selection.replace(/^[ ]{0,3}> ?/gm, "");
+            this.unwrap(chunk);
+            replaceBlanksInTags(false);
+
+            if (!/^(\n|^)[ ]{0,3}>/.test(chunk.selection) && chunk.startTag) {
+                chunk.startTag = chunk.startTag.replace(/\n{0,2}$/, "\n\n");
+            }
+
+            if (!/(\n|^)[ ]{0,3}>.*$/.test(chunk.selection) && chunk.endTag) {
+                chunk.endTag = chunk.endTag.replace(/^\n{0,2}/, "\n\n");
+            }
+        }
+
+        chunk.selection = this.hooks.postBlockquoteCreation(chunk.selection);
+
+        if (!/\n/.test(chunk.selection)) {
+            chunk.selection = chunk.selection.replace(/^(> *)/,
+                function (wholeMatch, blanks) {
+                    chunk.startTag += blanks;
+                    return "";
+                });
+        }
+    };
+
+    commandProto.doCode = function (chunk, postProcessing) {
+
+        var hasTextBefore = /\S[ ]*$/.test(chunk.before);
+        var hasTextAfter = /^[ ]*\S/.test(chunk.after);
+
+        // Use 'four space' markdown if the selection is on its own
+        // line or is multiline.
+        if ((!hasTextAfter && !hasTextBefore) || /\n/.test(chunk.selection)) {
+
+            chunk.before = chunk.before.replace(/[ ]{4}$/,
+                function (totalMatch) {
+                    chunk.selection = totalMatch + chunk.selection;
+                    return "";
+                });
+
+            var nLinesBack = 1;
+            var nLinesForward = 1;
+
+            if (/(\n|^)(\t|[ ]{4,}).*\n$/.test(chunk.before)) {
+                nLinesBack = 0;
+            }
+            if (/^\n(\t|[ ]{4,})/.test(chunk.after)) {
+                nLinesForward = 0;
+            }
+
+            chunk.skipLines(nLinesBack, nLinesForward);
+
+            if (!chunk.selection) {
+                chunk.startTag = "    ";
+                chunk.selection = "enter code here";
+            }
+            else {
+                if (/^[ ]{0,3}\S/m.test(chunk.selection)) {
+                    if (/\n/.test(chunk.selection))
+                        chunk.selection = chunk.selection.replace(/^/gm, "    ");
+                    else // if it's not multiline, do not select the four added spaces; this is more consistent with the doList behavior
+                        chunk.before += "    ";
+                }
+                else {
+                    chunk.selection = chunk.selection.replace(/^[ ]{4}/gm, "");
+                }
+            }
+        }
+        else {
+            // Use backticks (`) to delimit the code block.
+
+            chunk.trimWhitespace();
+            chunk.findTags(/`/, /`/);
+
+            if (!chunk.startTag && !chunk.endTag) {
+                chunk.startTag = chunk.endTag = "`";
+                if (!chunk.selection) {
+                    chunk.selection = "enter code here";
+                }
+            }
+            else if (chunk.endTag && !chunk.startTag) {
+                chunk.before += chunk.endTag;
+                chunk.endTag = "";
+            }
+            else {
+                chunk.startTag = chunk.endTag = "";
+            }
+        }
+    };
+
+    commandProto.doList = function (chunk, postProcessing, isNumberedList) {
+
+        // These are identical except at the very beginning and end.
+        // Should probably use the regex extension function to make this clearer.
+        var previousItemsRegex = /(\n|^)(([ ]{0,3}([*+-]|\d+[.])[ \t]+.*)(\n.+|\n{2,}([*+-].*|\d+[.])[ \t]+.*|\n{2,}[ \t]+\S.*)*)\n*$/;
+        var nextItemsRegex = /^\n*(([ ]{0,3}([*+-]|\d+[.])[ \t]+.*)(\n.+|\n{2,}([*+-].*|\d+[.])[ \t]+.*|\n{2,}[ \t]+\S.*)*)\n*/;
+
+        // The default bullet is a dash but others are possible.
+        // This has nothing to do with the particular HTML bullet,
+        // it's just a markdown bullet.
+        var bullet = "-";
+
+        // The number in a numbered list.
+        var num = 1;
+
+        // Get the item prefix - e.g. " 1. " for a numbered list, " - " for a bulleted list.
+        var getItemPrefix = function () {
+            var prefix;
+            if (isNumberedList) {
+                prefix = " " + num + ". ";
+                num++;
+            }
+            else {
+                prefix = " " + bullet + " ";
+            }
+            return prefix;
+        };
+
+        // Fixes the prefixes of the other list items.
+        var getPrefixedItem = function (itemText) {
+
+            // The numbering flag is unset when called by autoindent.
+            if (isNumberedList === undefined) {
+                isNumberedList = /^\s*\d/.test(itemText);
+            }
+
+            // Renumber/bullet the list element.
+            itemText = itemText.replace(/^[ ]{0,3}([*+-]|\d+[.])\s/gm,
+                function (_) {
+                    return getItemPrefix();
+                });
+
+            return itemText;
+        };
+
+        chunk.findTags(/(\n|^)*[ ]{0,3}([*+-]|\d+[.])\s+/, null);
+
+        if (chunk.before && !/\n$/.test(chunk.before) && !/^\n/.test(chunk.startTag)) {
+            chunk.before += chunk.startTag;
+            chunk.startTag = "";
+        }
+
+        if (chunk.startTag) {
+
+            var hasDigits = /\d+[.]/.test(chunk.startTag);
+            chunk.startTag = "";
+            chunk.selection = chunk.selection.replace(/\n[ ]{4}/g, "\n");
+            this.unwrap(chunk);
+            chunk.skipLines();
+
+            if (hasDigits) {
+                // Have to renumber the bullet points if this is a numbered list.
+                chunk.after = chunk.after.replace(nextItemsRegex, getPrefixedItem);
+            }
+            if (isNumberedList == hasDigits) {
+                return;
+            }
+        }
+
+        var nLinesUp = 1;
+
+        chunk.before = chunk.before.replace(previousItemsRegex,
+            function (itemText) {
+                if (/^\s*([*+-])/.test(itemText)) {
+                    bullet = re.$1;
+                }
+                nLinesUp = /[^\n]\n\n[^\n]/.test(itemText) ? 1 : 0;
+                return getPrefixedItem(itemText);
+            });
+
+        if (!chunk.selection) {
+            chunk.selection = "List item";
+        }
+
+        var prefix = getItemPrefix();
+
+        var nLinesDown = 1;
+
+        chunk.after = chunk.after.replace(nextItemsRegex,
+            function (itemText) {
+                nLinesDown = /[^\n]\n\n[^\n]/.test(itemText) ? 1 : 0;
+                return getPrefixedItem(itemText);
+            });
+
+        chunk.trimWhitespace(true);
+        chunk.skipLines(nLinesUp, nLinesDown, true);
+        chunk.startTag = prefix;
+        var spaces = prefix.replace(/./g, " ");
+        this.wrap(chunk, SETTINGS.lineLength - spaces.length);
+        chunk.selection = chunk.selection.replace(/\n/g, "\n" + spaces);
+
+    };
+
+    commandProto.doHeading = function (chunk, postProcessing) {
+
+        // Remove leading/trailing whitespace and reduce internal spaces to single spaces.
+        chunk.selection = chunk.selection.replace(/\s+/g, " ");
+        chunk.selection = chunk.selection.replace(/(^\s+|\s+$)/g, "");
+
+        // If we clicked the button with no selected text, we just
+        // make a level 2 hash header around some default text.
+        if (!chunk.selection) {
+            chunk.startTag = "## ";
+            chunk.selection = "Heading";
+            chunk.endTag = " ##";
+            return;
+        }
+
+        var headerLevel = 0;     // The existing header level of the selected text.
+
+        // Remove any existing hash heading markdown and save the header level.
+        chunk.findTags(/#+[ ]*/, /[ ]*#+/);
+        if (/#+/.test(chunk.startTag)) {
+            headerLevel = re.lastMatch.length;
+        }
+        chunk.startTag = chunk.endTag = "";
+
+        // Try to get the current header level by looking for - and = in the line
+        // below the selection.
+        chunk.findTags(null, /\s?(-+|=+)/);
+        if (/=+/.test(chunk.endTag)) {
+            headerLevel = 1;
+        }
+        if (/-+/.test(chunk.endTag)) {
+            headerLevel = 2;
+        }
+
+        // Skip to the next line so we can create the header markdown.
+        chunk.startTag = chunk.endTag = "";
+        chunk.skipLines(1, 1);
+
+        // We make a level 2 header if there is no current header.
+        // If there is a header level, we substract one from the header level.
+        // If it's already a level 1 header, it's removed.
+        var headerLevelToCreate = headerLevel == 0 ? 2 : headerLevel - 1;
+
+        if (headerLevelToCreate > 0) {
+
+            // The button only creates level 1 and 2 underline headers.
+            // Why not have it iterate over hash header levels?  Wouldn't that be easier and cleaner?
+            var headerChar = headerLevelToCreate >= 2 ? "-" : "=";
+            var len = chunk.selection.length;
+            if (len > SETTINGS.lineLength) {
+                len = SETTINGS.lineLength;
+            }
+            chunk.endTag = "\n";
+            while (len--) {
+                chunk.endTag += headerChar;
+            }
+        }
+    };
+
+    commandProto.doHorizontalRule = function (chunk, postProcessing) {
+        chunk.startTag = "----------\n";
+        chunk.selection = "";
+        chunk.skipLines(2, 1, true);
+    }
+
+
+})();
+
+(function () {
+    var output, Converter;
+    if (typeof exports === "object" && typeof require === "function") { // we're in a CommonJS (e.g. Node.js) module
+        output = exports;
+        Converter = require("./Markdown.Converter").Converter;
+    } else {
+        output = window.Markdown;
+        Converter = output.Converter;
+    }
+
+    output.getSanitizingConverter = function () {
+        var converter = new Converter();
+        converter.hooks.chain("postConversion", sanitizeHtml);
+        converter.hooks.chain("postConversion", balanceTags);
+        return converter;
+    }
+
+    function sanitizeHtml(html) {
+        return html.replace(/<[^>]*>?/gi, sanitizeTag);
+    }
+
+    // (tags that can be opened/closed) | (tags that stand alone)
+    var basic_tag_whitelist = /^(<\/?(b|blockquote|code|del|dd|dl|dt|em|h1|h2|h3|i|kbd|li|ol|p|s|sup|sub|strong|strike|ul)>|<(br|hr)\s?\/?>)$/i;
+    // <a href="url..." optional title>|</a>
+    var a_white = /^(<a\shref="(https?:(\/\/|\/)|ftp:(\/\/|\/)|mailto:|magnet:)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+"(\stitle="[^"<>]+")?\s?>|<\/a>)$/i;
+
+    // <img src="url..." optional width  optional height  optional alt  optional title
+    var img_white = /^(<img\ssrc="(https?:\/\/|\/)[-A-Za-z0-9+&@#\/%?=~_|!:,.;\(\)]+"(\swidth="\d{1,3}")?(\sheight="\d{1,3}")?(\salt="[^"<>]*")?(\stitle="[^"<>]*")?\s?\/?>)$/i;
+
+    // <pre optional class="prettyprint linenums">|</pre> for twitter bootstrap
+    var pre_white = /^(<pre(\sclass="prettyprint linenums")?>|<\/pre>)$/i;
+
+    function sanitizeTag(tag) {
+        if (tag.match(basic_tag_whitelist) || tag.match(a_white) || tag.match(img_white) || tag.match(pre_white))
+            return tag;
+        else
+            return "";
+    }
+
+    /// <summary>
+    /// attempt to balance HTML tags in the html string
+    /// by removing any unmatched opening or closing tags
+    /// IMPORTANT: we *assume* HTML has *already* been
+    /// sanitized and is safe/sane before balancing!
+    ///
+    /// adapted from CODESNIPPET: A8591DBA-D1D3-11DE-947C-BA5556D89593
+    /// </summary>
+    function balanceTags(html) {
+
+        if (html == "")
+            return "";
+
+        var re = /<\/?\w+[^>]*(\s|$|>)/g;
+        // convert everything to lower case; this makes
+        // our case insensitive comparisons easier
+        var tags = html.toLowerCase().match(re);
+
+        // no HTML tags present? nothing to do; exit now
+        var tagcount = (tags || []).length;
+        if (tagcount == 0)
+            return html;
+
+        var tagname, tag;
+        var ignoredtags = "<p><img><br><li><hr>";
+        var match;
+        var tagpaired = [];
+        var tagremove = [];
+        var needsRemoval = false;
+
+        // loop through matched tags in forward order
+        for (var ctag = 0; ctag < tagcount; ctag++) {
+            tagname = tags[ctag].replace(/<\/?(\w+).*/, "$1");
+            // skip any already paired tags
+            // and skip tags in our ignore list; assume they're self-closed
+            if (tagpaired[ctag] || ignoredtags.search("<" + tagname + ">") > -1)
+                continue;
+
+            tag = tags[ctag];
+            match = -1;
+
+            if (!/^<\//.test(tag)) {
+                // this is an opening tag
+                // search forwards (next tags), look for closing tags
+                for (var ntag = ctag + 1; ntag < tagcount; ntag++) {
+                    if (!tagpaired[ntag] && tags[ntag] == "</" + tagname + ">") {
+                        match = ntag;
+                        break;
+                    }
+                }
+            }
+
+            if (match == -1)
+                needsRemoval = tagremove[ctag] = true; // mark for removal
+            else
+                tagpaired[match] = true; // mark paired
+        }
+
+        if (!needsRemoval)
+            return html;
+
+        // delete all orphaned tags from the string
+
+        var ctag = 0;
+        html = html.replace(re, function (match) {
+            var res = tagremove[ctag] ? "" : match;
+            ctag++;
+            return res;
+        });
+        return html;
+    }
+})();
+
+/*
+ * Pagedown Bootstrap
+ * Author: Kevin O'Connor
+ * Version: 1.0
+ *
+ * Copyright (c) 2013 Kevin O'Connor
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * 
+ */
+
+(function( $ ){
+
+    $.fn.pagedownBootstrap = function( options ) {
+
+        // Default settings
+        var settings = $.extend( {
+            'sanitize'				: true,
+            'help'						: null,
+            'hooks'						: Array()
+        }, options);
+
+        return this.each(function() {
+
+            //Setup converter
+            var converter = null;
+            if(settings.sanitize)
+            {
+                converter = Markdown.getSanitizingConverter();
+            } else {
+                converter = new Markdown.Converter()
+            }
+
+            //Register hooks
+            for(var i in settings.hooks)
+            {
+                var hook = settings.hooks[i];
+                if(typeof hook !== 'object' || typeof hook.event === 'undefined'
+                    || typeof hook.callback !== 'function')
+                {
+                    //A bad hook object was given
+                    continue;
+                }
+
+                converter.hooks.chain(hook.event, hook.callback);
+
+            }
+
+            //Try to find a valid id for this element
+            var id = "wmd-input";
+            var idAppend = 0;
+            while($("#"+id+"-"+idAppend.toString()).length > 0)
+            {
+                idAppend++;
+            }
+
+            //Assign the choosen id to the element
+            $(this).attr('id', id+"-"+idAppend.toString());
+
+            //Wrap the element with the needed html
+            $(this).wrap('<div class="wmd-panel" />');
+            $(this).before('<div id="wmd-button-bar-'+idAppend+'" class="wmd-button-bar" />');
+            $(this).after('<div id="wmd-preview-'+idAppend+'" class="wmd-preview" />');
+            $(this).addClass('wmd-input');
+
+            //Setup help function
+            help = null;
+            if($.isFunction(settings.help))
+            {
+                help = { handler: settings.help };
+            }
+
+            //Setup editor
+            var editor = new Markdown.Editor(converter, "-"+idAppend.toString(), help);
+            editor.run();
+
+        });
+
+    };
+})( jQuery );
+;
+/*
+ *	Tabby jQuery plugin version 0.12
+ *
+ *	Ted Devito - http://teddevito.com/demos/textarea.html
+ *
+ *	Copyright (c) 2009 Ted Devito
+ *	 
+ *	Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following 
+ *	conditions are met:
+ *	
+ *		1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+ *		2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer  
+ *			in the documentation and/or other materials provided with the distribution.
+ *		3. The name of the author may not be used to endorse or promote products derived from this software without specific prior written 
+ *			permission. 
+ *	 
+ *	THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+ *	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE 
+ *	LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+ *	PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
+ *	THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+ *	OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ */
+
+// create closure
+
+(function($) {
+
+    // plugin definition
+
+    $.fn.tabby = function(options) {
+        //debug(this);
+        // build main options before element iteration
+        var opts = $.extend({}, $.fn.tabby.defaults, options);
+        var pressed = $.fn.tabby.pressed;
+
+        // iterate and reformat each matched element
+        return this.each(function() {
+            $this = $(this);
+
+            // build element specific options
+            var options = $.meta ? $.extend({}, opts, $this.data()) : opts;
+
+            $this.bind('keydown',function (e) {
+                var kc = $.fn.tabby.catch_kc(e);
+                if (16 == kc) pressed.shft = true;
+                /*
+                 because both CTRL+TAB and ALT+TAB default to an event (changing tab/window) that
+                 will prevent js from capturing the keyup event, we'll set a timer on releasing them.
+                 */
+                if (17 == kc) {pressed.ctrl = true;	setTimeout(function(){$.fn.tabby.pressed.ctrl = false;},1000);}
+                if (18 == kc) {pressed.alt = true; 	setTimeout(function(){$.fn.tabby.pressed.alt = false;},1000);}
+
+                if (9 == kc && !pressed.ctrl && !pressed.alt) {
+                    e.preventDefault; // does not work in O9.63 ??
+                    pressed.last = kc;	setTimeout(function(){$.fn.tabby.pressed.last = null;},0);
+                    process_keypress ($(e.target).get(0), pressed.shft, options);
+                    return false;
+                }
+
+            }).bind('keyup',function (e) {
+                if (16 == $.fn.tabby.catch_kc(e)) pressed.shft = false;
+            }).bind('blur',function (e) { // workaround for Opera -- http://www.webdeveloper.com/forum/showthread.php?p=806588
+                if (9 == pressed.last) $(e.target).one('focus',function (e) {pressed.last = null;}).get(0).focus();
+            });
+
+        });
+    };
+
+    // define and expose any extra methods
+    $.fn.tabby.catch_kc = function(e) { return e.keyCode ? e.keyCode : e.charCode ? e.charCode : e.which; };
+    $.fn.tabby.pressed = {shft : false, ctrl : false, alt : false, last: null};
+
+    // private function for debugging
+    function debug($obj) {
+        if (window.console && window.console.log)
+            window.console.log('textarea count: ' + $obj.size());
+    };
+
+    function process_keypress (o,shft,options) {
+        var scrollTo = o.scrollTop;
+        //var tabString = String.fromCharCode(9);
+
+        // gecko; o.setSelectionRange is only available when the text box has focus
+        if (o.setSelectionRange) gecko_tab (o, shft, options);
+
+        // ie; document.selection is always available
+        else if (document.selection) ie_tab (o, shft, options);
+
+        o.scrollTop = scrollTo;
+    }
+
+    // plugin defaults
+    $.fn.tabby.defaults = {tabString : String.fromCharCode(9)};
+
+    function gecko_tab (o, shft, options) {
+        var ss = o.selectionStart;
+        var es = o.selectionEnd;
+
+        // when there's no selection and we're just working with the caret, we'll add/remove the tabs at the caret, providing more control
+        if(ss == es) {
+            // SHIFT+TAB
+            if (shft) {
+                // check to the left of the caret first
+                if (ss-options.tabString == o.value.substring(ss-options.tabString.length, ss)) {
+                    o.value = o.value.substring(0, ss-options.tabString.length) + o.value.substring(ss); // put it back together omitting one character to the left
+                    o.focus();
+                    o.setSelectionRange(ss - options.tabString.length, ss - options.tabString.length);
+                }
+                // then check to the right of the caret
+                else if (ss-options.tabString == o.value.substring(ss, ss + options.tabString.length)) {
+                    o.value = o.value.substring(0, ss) + o.value.substring(ss + options.tabString.length); // put it back together omitting one character to the right
+                    o.focus();
+                    o.setSelectionRange(ss,ss);
+                }
+            }
+            // TAB
+            else {
+                o.value = o.value.substring(0, ss) + options.tabString + o.value.substring(ss);
+                o.focus();
+                o.setSelectionRange(ss + options.tabString.length, ss + options.tabString.length);
+            }
+        }
+        // selections will always add/remove tabs from the start of the line
+        else {
+            while (ss < o.value.length && o.value.charAt(ss).match(/[ \t]/)) ss++;
+            // split the textarea up into lines and figure out which lines are included in the selection
+            var lines = o.value.split("\n");
+            var indices = new Array();
+            var sl = 0; // start of the line
+            var el = 0; // end of the line
+            var sel = false;
+            for (var i in lines) {
+                el = sl + lines[i].length;
+                indices.push({start: sl, end: el, selected: (sl <= ss && el > ss) || (el >= es && sl < es) || (sl > ss && el < es)});
+                sl = el + 1;// for "\n"
+            }
+
+            // walk through the array of lines (indices) and add tabs where appropriate
+            var modifier = 0;
+            for (var i in indices) {
+                if (indices[i].selected) {
+                    var pos = indices[i].start + modifier; // adjust for tabs already inserted/removed
+                    // SHIFT+TAB
+                    if (shft && options.tabString == o.value.substring(pos,pos+options.tabString.length)) { // only SHIFT+TAB if there's a tab at the start of the line
+                        o.value = o.value.substring(0,pos) + o.value.substring(pos + options.tabString.length); // omit the tabstring to the right
+                        modifier -= options.tabString.length;
+                    }
+                    // TAB
+                    else if (!shft) {
+                        o.value = o.value.substring(0,pos) + options.tabString + o.value.substring(pos); // insert the tabstring
+                        modifier += options.tabString.length;
+                    }
+                }
+            }
+            o.focus();
+            var ns = ss + ((modifier > 0) ? options.tabString.length : (modifier < 0) ? -options.tabString.length : 0);
+            var ne = es + modifier;
+            o.setSelectionRange(ns,ne);
+        }
+    }
+
+    function ie_tab (o, shft, options) {
+        var range = document.selection.createRange();
+
+        if (o == range.parentElement()) {
+            // when there's no selection and we're just working with the caret, we'll add/remove the tabs at the caret, providing more control
+            if ('' == range.text) {
+                // SHIFT+TAB
+                if (shft) {
+                    var bookmark = range.getBookmark();
+                    //first try to the left by moving opening up our empty range to the left
+                    range.moveStart('character', -options.tabString.length);
+                    if (options.tabString == range.text) {
+                        range.text = '';
+                    } else {
+                        // if that didn't work then reset the range and try opening it to the right
+                        range.moveToBookmark(bookmark);
+                        range.moveEnd('character', options.tabString.length);
+                        if (options.tabString == range.text)
+                            range.text = '';
+                    }
+                    // move the pointer to the start of them empty range and select it
+                    range.collapse(true);
+                    range.select();
+                }
+
+                else {
+                    // very simple here. just insert the tab into the range and put the pointer at the end
+                    range.text = options.tabString;
+                    range.collapse(false);
+                    range.select();
+                }
+            }
+            // selections will always add/remove tabs from the start of the line
+            else {
+
+                var selection_text = range.text;
+                var selection_len = selection_text.length;
+                var selection_arr = selection_text.split("\r\n");
+
+                var before_range = document.body.createTextRange();
+                before_range.moveToElementText(o);
+                before_range.setEndPoint("EndToStart", range);
+                var before_text = before_range.text;
+                var before_arr = before_text.split("\r\n");
+                var before_len = before_text.length; // - before_arr.length + 1;
+
+                var after_range = document.body.createTextRange();
+                after_range.moveToElementText(o);
+                after_range.setEndPoint("StartToEnd", range);
+                var after_text = after_range.text; // we can accurately calculate distance to the end because we're not worried about MSIE trimming a \r\n
+
+                var end_range = document.body.createTextRange();
+                end_range.moveToElementText(o);
+                end_range.setEndPoint("StartToEnd", before_range);
+                var end_text = end_range.text; // we can accurately calculate distance to the end because we're not worried about MSIE trimming a \r\n
+
+                var check_html = $(o).html();
+                $("#r3").text(before_len + " + " + selection_len + " + " + after_text.length + " = " + check_html.length);
+                if((before_len + end_text.length) < check_html.length) {
+                    before_arr.push("");
+                    before_len += 2; // for the \r\n that was trimmed
+                    if (shft && options.tabString == selection_arr[0].substring(0,options.tabString.length))
+                        selection_arr[0] = selection_arr[0].substring(options.tabString.length);
+                    else if (!shft) selection_arr[0] = options.tabString + selection_arr[0];
+                } else {
+                    if (shft && options.tabString == before_arr[before_arr.length-1].substring(0,options.tabString.length))
+                        before_arr[before_arr.length-1] = before_arr[before_arr.length-1].substring(options.tabString.length);
+                    else if (!shft) before_arr[before_arr.length-1] = options.tabString + before_arr[before_arr.length-1];
+                }
+
+                for (var i = 1; i < selection_arr.length; i++) {
+                    if (shft && options.tabString == selection_arr[i].substring(0,options.tabString.length))
+                        selection_arr[i] = selection_arr[i].substring(options.tabString.length);
+                    else if (!shft) selection_arr[i] = options.tabString + selection_arr[i];
+                }
+
+                if (1 == before_arr.length && 0 == before_len) {
+                    if (shft && options.tabString == selection_arr[0].substring(0,options.tabString.length))
+                        selection_arr[0] = selection_arr[0].substring(options.tabString.length);
+                    else if (!shft) selection_arr[0] = options.tabString + selection_arr[0];
+                }
+
+                if ((before_len + selection_len + after_text.length) < check_html.length) {
+                    selection_arr.push("");
+                    selection_len += 2; // for the \r\n that was trimmed
+                }
+
+                before_range.text = before_arr.join("\r\n");
+                range.text = selection_arr.join("\r\n");
+
+                var new_range = document.body.createTextRange();
+                new_range.moveToElementText(o);
+
+                if (0 < before_len)	new_range.setEndPoint("StartToEnd", before_range);
+                else new_range.setEndPoint("StartToStart", before_range);
+                new_range.setEndPoint("EndToEnd", range);
+
+                new_range.select();
+
+            }
+        }
+    }
+
+// end of closure
+})(jQuery);
+/* speakingurl v0.9.1 (c) 2013-2014 Sascha Droste http://pid.github.io/speakingurl/ */!function(){"use strict";var a=function(a,b){var f,g,h,i,j,k="object"==typeof b&&b.maintainCase||!1,l="object"==typeof b&&b.titleCase?b.titleCase:!1,m="object"==typeof b&&"object"==typeof b.custom&&b.custom?b.custom:{},n="object"==typeof b&&b.separator||"-",o="object"==typeof b&&+b.truncate>1&&b.truncate||!1,p="object"==typeof b&&b.uric||!1,q="object"==typeof b&&b.uricNoSlash||!1,r="object"==typeof b&&b.mark||!1,s="object"==typeof b&&b.lang&&e[b.lang]?e[b.lang]:"object"!=typeof b||b.lang!==!1&&b.lang!==!0?e.en:{},t=[";","?",":","@","&","=","+","$",",","/"],u=[";","?",":","@","&","=","+","$",","],v=[".","!","~","*","'","(",")"],w="",x=n;if(l&&"number"==typeof l.length&&Array.prototype.toString.call(l)&&l.forEach(function(a){m[a+""]=a+""}),"string"!=typeof a)return"";for("string"==typeof b?n=b:"object"==typeof b&&(p&&(x+=t.join("")),q&&(x+=u.join("")),r&&(x+=v.join(""))),Object.keys(m).forEach(function(b){var d;d=b.length>1?new RegExp("\\b"+c(b)+"\\b","gi"):new RegExp(c(b),"gi"),a=a.replace(d,m[b])}),l&&(a=a.replace(/(\w)(\S*)/g,function(a,b,c){var d=b.toUpperCase()+(null!==c?c:"");return Object.keys(m).indexOf(d.toLowerCase())<0?d:d.toLowerCase()})),x=c(x),a=a.replace(/(^\s+|\s+$)/g,""),j=!1,g=0,i=a.length;i>g;g++)h=a[g],d[h]?(h=j&&d[h].match(/[A-Za-z0-9]/)?" "+d[h]:d[h],j=!1):!s[h]||p&&-1!==t.join("").indexOf(h)||q&&-1!==u.join("").indexOf(h)||r&&-1!==v.join("").indexOf(h)?(j&&(/[A-Za-z0-9]/.test(h)||w.substr(-1).match(/A-Za-z0-9]/))&&(h=" "+h),j=!1):(h=j||w.substr(-1).match(/[A-Za-z0-9]/)?n+s[h]:s[h],h+=void 0!==a[g+1]&&a[g+1].match(/[A-Za-z0-9]/)?n:"",j=!0),w+=h.replace(new RegExp("[^\\w\\s"+x+"_-]","g"),n);return w=w.replace(/\s+/g,n).replace(new RegExp("\\"+n+"+","g"),n).replace(new RegExp("(^\\"+n+"+|\\"+n+"+$)","g"),""),o&&w.length>o&&(f=w.charAt(o)===n,w=w.slice(0,o),f||(w=w.slice(0,w.lastIndexOf(n)))),k||l||l.length||(w=w.toLowerCase()),w},b=function(b){return function(c){return a(c,b)}},c=function(a){return a.replace(/[-\\^$*+?.()|[\]{}\/]/g,"\\$&")},d={À:"A",Á:"A",Â:"A",Ã:"A",Ä:"Ae",Å:"A",Æ:"AE",Ç:"C",È:"E",É:"E",Ê:"E",Ë:"E",Ì:"I",Í:"I",Î:"I",Ï:"I",Ð:"D",Ñ:"N",Ò:"O",Ó:"O",Ô:"O",Õ:"O",Ö:"Oe",Ő:"O",Ø:"O",Ù:"U",Ú:"U",Û:"U",Ü:"Ue",Ű:"U",Ý:"Y",Þ:"TH",ß:"ss",à:"a",á:"a",â:"a",ã:"a",ä:"ae",å:"a",æ:"ae",ç:"c",è:"e",é:"e",ê:"e",ë:"e",ì:"i",í:"i",î:"i",ï:"i",ð:"d",ñ:"n",ò:"o",ó:"o",ô:"o",õ:"o",ö:"oe",ő:"o",ø:"o",ù:"u",ú:"u",û:"u",ü:"ue",ű:"u",ý:"y",þ:"th",ÿ:"y",ẞ:"SS",α:"a",β:"b",γ:"g",δ:"d",ε:"e",ζ:"z",η:"h",θ:"8",ι:"i",κ:"k",λ:"l",μ:"m",ν:"n",ξ:"3",ο:"o",π:"p",ρ:"r",σ:"s",τ:"t",υ:"y",φ:"f",χ:"x",ψ:"ps",ω:"w",ά:"a",έ:"e",ί:"i",ό:"o",ύ:"y",ή:"h",ώ:"w",ς:"s",ϊ:"i",ΰ:"y",ϋ:"y",ΐ:"i",Α:"A",Β:"B",Γ:"G",Δ:"D",Ε:"E",Ζ:"Z",Η:"H",Θ:"8",Ι:"I",Κ:"K",Λ:"L",Μ:"M",Ν:"N",Ξ:"3",Ο:"O",Π:"P",Ρ:"R",Σ:"S",Τ:"T",Υ:"Y",Φ:"F",Χ:"X",Ψ:"PS",Ω:"W",Ά:"A",Έ:"E",Ί:"I",Ό:"O",Ύ:"Y",Ή:"H",Ώ:"W",Ϊ:"I",Ϋ:"Y",ş:"s",Ş:"S",ı:"i",İ:"I",ğ:"g",Ğ:"G",Ќ:"Kj",ќ:"kj",Љ:"Lj",љ:"lj",Њ:"Nj",њ:"nj",Тс:"Ts",тс:"ts",а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"yo",ж:"zh",з:"z",и:"i",й:"j",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"h",ц:"c",ч:"ch",ш:"sh",щ:"sh",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya",А:"A",Б:"B",В:"V",Г:"G",Д:"D",Е:"E",Ё:"Yo",Ж:"Zh",З:"Z",И:"I",Й:"J",К:"K",Л:"L",М:"M",Н:"N",О:"O",П:"P",Р:"R",С:"S",Т:"T",У:"U",Ф:"F",Х:"H",Ц:"C",Ч:"Ch",Ш:"Sh",Щ:"Sh",Ъ:"",Ы:"Y",Ь:"",Э:"E",Ю:"Yu",Я:"Ya",Є:"Ye",І:"I",Ї:"Yi",Ґ:"G",є:"ye",і:"i",ї:"yi",ґ:"g",č:"c",ď:"d",ě:"e",ň:"n",ř:"r",š:"s",ť:"t",ů:"u",ž:"z",Č:"C",Ď:"D",Ě:"E",Ň:"N",Ř:"R",Š:"S",Ť:"T",Ů:"U",Ž:"Z",ą:"a",ć:"c",ę:"e",ł:"l",ń:"n",ś:"s",ź:"z",ż:"z",Ą:"A",Ć:"C",Ę:"E",Ł:"L",Ń:"N",Ś:"S",Ź:"Z",Ż:"Z",ā:"a",ē:"e",ģ:"g",ī:"i",ķ:"k",ļ:"l",ņ:"n",ū:"u",Ā:"A",Ē:"E",Ģ:"G",Ī:"I",Ķ:"k",Ļ:"L",Ņ:"N",Ū:"U",ا:"a",أ:"a",إ:"i",آ:"aa",ؤ:"u",ئ:"e",ء:"a",ب:"b",ت:"t",ث:"th",ج:"j",ح:"h",خ:"kh",د:"d",ذ:"th",ر:"r",ز:"z",س:"s",ش:"sh",ص:"s",ض:"dh",ط:"t",ظ:"z",ع:"a",غ:"gh",ف:"f",ق:"q",ك:"k",ل:"l",م:"m",ن:"n",ه:"h",و:"w",ي:"y",ى:"a",ة:"h",ﻻ:"la",ﻷ:"laa",ﻹ:"lai",ﻵ:"laa","َ":"a","ً":"an","ِ":"e","ٍ":"en","ُ":"u","ٌ":"on","ْ":"","٠":"0","١":"1","٢":"2","٣":"3","٤":"4","٥":"5","٦":"6","٧":"7","٨":"8","٩":"9","“":'"',"”":'"',"‘":"'","’":"'","∂":"d",ƒ:"f","™":"(TM)","©":"(C)",œ:"oe",Œ:"OE","®":"(R)","†":"+","℠":"(SM)","…":"...","˚":"o",º:"o",ª:"a","•":"*",$:"USD","€":"EUR","₢":"BRN","₣":"FRF","£":"GBP","₤":"ITL","₦":"NGN","₧":"ESP","₩":"KRW","₪":"ILS","₫":"VND","₭":"LAK","₮":"MNT","₯":"GRD","₱":"ARS","₲":"PYG","₳":"ARA","₴":"UAH","₵":"GHS","¢":"cent","¥":"CNY","元":"CNY","円":"YEN","﷼":"IRR","₠":"EWE","฿":"THB","₨":"INR","₹":"INR","₰":"PF"},e={ar:{"∆":"delta","∞":"la-nihaya","♥":"hob","&":"wa","|":"aw","<":"aqal-men",">":"akbar-men","∑":"majmou","¤":"omla"},de:{"∆":"delta","∞":"unendlich","♥":"Liebe","&":"und","|":"oder","<":"kleiner als",">":"groesser als","∑":"Summe von","¤":"Waehrung"},nl:{"∆":"delta","∞":"oneindig","♥":"liefde","&":"en","|":"of","<":"kleiner dan",">":"groter dan","∑":"som","¤":"valuta"},en:{"∆":"delta","∞":"infinity","♥":"love","&":"and","|":"or","<":"less than",">":"greater than","∑":"sum","¤":"currency"},es:{"∆":"delta","∞":"infinito","♥":"amor","&":"y","|":"u","<":"menos que",">":"mas que","∑":"suma de los","¤":"moneda"},fr:{"∆":"delta","∞":"infiniment","♥":"Amour","&":"et","|":"ou","<":"moins que",">":"superieure a","∑":"somme des","¤":"monnaie"},pt:{"∆":"delta","∞":"infinito","♥":"amor","&":"e","|":"ou","<":"menor que",">":"maior que","∑":"soma","¤":"moeda"},ru:{"∆":"delta","∞":"beskonechno","♥":"lubov","&":"i","|":"ili","<":"menshe",">":"bolshe","∑":"summa","¤":"valjuta"}};if("undefined"!=typeof module&&module.exports)module.exports=a,module.exports.createSlug=b;else if("undefined"!=typeof define&&define.amd)define([],function(){return a});else try{if(window.getSlug||window.createSlug)throw"speakingurl: globals exists /(getSlug|createSlug)/";window.getSlug=a,window.createSlug=b}catch(f){}}();
+;

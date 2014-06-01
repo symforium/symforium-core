@@ -67,6 +67,7 @@ bldr:
                                 - bootstrap.css
                                 - font-awesome.css
                                 - flat-ui.css
+                                - pagedown.css
                     dest: src/Bundle/CoreBundle/Resources/private/build/css/vendor.css
                 -
                     type: minify:css
@@ -89,8 +90,13 @@ bldr:
                             files:
                                 - jquery.js
                                 - bootstrap.js
+                                - bootstrap-select.js
+                                - bootstrap-switch.js
                                 - flatui-checkbox.js
                                 - flatui-radio.js
+                                - pagedown.js
+                                - tabby.js
+                                - speakingurl.js
                     dest: src/Bundle/CoreBundle/Resources/private/build/js/vendor.js
                 -
                     type: minify:js

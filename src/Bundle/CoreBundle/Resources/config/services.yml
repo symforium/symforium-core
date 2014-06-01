@@ -5,3 +5,36 @@ services:
             - %symforium.plugins%
         tags:
             - { name: routing.loader }
+
+
+    symforium.core.core_bundle.menu.builder:
+        class: Symforium\Core\Bundle\CoreBundle\Menu\Builder
+        arguments: [%symforium.plugins%, @knp_menu.factory]
+
+    symforium.core.menu.admin:
+        class: Knp\Menu\MenuItem # the service definition requires setting the class
+        factory_service: symforium.core.core_bundle.menu.builder
+        factory_method: createAdminMenu
+        arguments: ["@request"]
+        scope: request # needed as we have the request as a dependency here
+        tags:
+            - { name: knp_menu.menu, alias: admin } # The alias is what is used to retrieve the menu
+
+    symforium.core.listener.doctrine_persistance:
+        class: Symforium\Core\Bundle\CoreBundle\Listener\DoctrinePersistanceListener
+        arguments: [@service_container]
+        tags:
+            - { name: doctrine.event_listener, event: prePersist }
+
+    symforium.core.listener.exception:
+        class: Symforium\Core\Bundle\CoreBundle\Listener\ExceptionListener
+        arguments: [@templating]
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }
+
+    symforium.core.service.router_cache_clearer:
+        class: Symforium\Core\Bundle\CoreBundle\Service\RouterCacheClearer
+        arguments: [%kernel.cache_dir%]
+
+    router_cache_clearer:
+        alias: symforium.core.service.router_cache_clearer

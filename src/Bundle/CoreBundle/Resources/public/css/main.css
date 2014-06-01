@@ -95,6 +95,13 @@
   right: 8px;
   color: #ffffff;
 }
+#navigation > .navbar .collapse > ul > li.current {
+  background: rgba(255, 255, 255, 0.2);
+}
+#navigation > .navbar .collapse > ul > li.current > a,
+#navigation > .navbar .collapse > ul > li.current > a > i {
+  color: #1abc9c;
+}
 #navigation > .navbar a:hover > i {
   color: #1abc9c;
 }
@@ -141,6 +148,7 @@
 }
 #navigation > .navbar .dropdown-submenu > .dropdown-menu > li {
   background: #34495e;
+  border-radius: 0;
 }
 #navigation > .navbar .dropdown-submenu > .dropdown-menu > li:hover > a {
   background: #1abc9c;
@@ -148,15 +156,13 @@
 }
 #navigation > .navbar .dropdown-submenu > .dropdown-menu > li:first-child,
 #navigation > .navbar .dropdown-submenu > .dropdown-menu > li:first-child > a {
-  -webkit-border-radius: 5px 5px 0 0;
-  -moz-border-radius: 5px 5px 0 0;
-  border-radius: 5px 5px 0 0;
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
 }
 #navigation > .navbar .dropdown-submenu > .dropdown-menu > li:last-child,
 #navigation > .navbar .dropdown-submenu > .dropdown-menu > li:last-child > a {
-  -webkit-border-radius: 0 0 5px 5px;
-  -moz-border-radius: 0 0 5px 5px;
-  border-radius: 0 0 5px 5px;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 5px;
 }
 #navigation > .navbar .dropdown-submenu:hover > .dropdown-arrow {
   display: block;
@@ -187,11 +193,13 @@ body {
 }
 section#content > .container {
   padding: 45px 50px;
-  min-height: 500px;
-  border-radius: 0 0 3px 3px;
-  border: 1px solid #ecf0f1;
-  background: #ecf0f1;
 }
 .navbar-inverse .multi-level a {
   color: #e1e4e7;
+}
+.container .row {
+  margin-bottom: 15px;
+}
+.container .row:last-child {
+  margin-bottom: 0;
 }

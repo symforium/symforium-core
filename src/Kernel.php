@@ -14,10 +14,13 @@ namespace Symforium\Core;
 use Aequasi\Environment\Environment;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use FOS\UserBundle\FOSUserBundle;
+use Knp\Bundle\MarkdownBundle\KnpMarkdownBundle;
+use Knp\Bundle\MenuBundle\KnpMenuBundle;
 use Sensio\Bundle as SensioBundle;
 use Symfony\Bundle as SymfonyBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpKernel\Kernel as SymfonyKernel;
+use Symforium\Plugin\CmsPlugin\SymforiumCmsPlugin;
 use WhiteOctober\BreadcrumbsBundle\WhiteOctoberBreadcrumbsBundle;
 
 /**
@@ -81,11 +84,12 @@ abstract class Kernel extends SymfonyKernel
             new DoctrineBundle(),
             new SensioBundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
             new WhiteOctoberBreadcrumbsBundle(),
+            new KnpMarkdownBundle(),
             new FOSUserBundle(),
-            //new KnpMenuBundle(),
+            new KnpMenuBundle(),
             //new AequasiCacheBundle(),
             new Bundle\CoreBundle\SymforiumCoreBundle(),
-            new Bundle\UserBundle\SymforiumUserBundle(),
+            new Bundle\UserBundle\SymforiumUserBundle()
         ];
 
         if (in_array($this->getEnvironment(), ['dev', 'test'])) {

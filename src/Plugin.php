@@ -19,12 +19,57 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 abstract class Plugin extends Bundle
 {
+
     /**
-     * Returns the resource name of the routing file
+     * {@inheritdoc}
+     */
+    public function getContainerExtension()
+    {
+        if (null === $this->extension) {
+            $basename = preg_replace('/Plugin$/', '', $this->getName());
+
+            $class = $this->getNamespace().'\\DependencyInjection\\'.$basename.'Extension';
+            if (class_exists($class)) {
+                $extension = new $class();
+
+                // check naming convention
+                $expectedAlias = Container::underscore($basename);
+                if ($expectedAlias != $extension->getAlias()) {
+                    throw new \LogicException(sprintf(
+                            'The extension alias for the default extension of a '.
+                            'bundle must be the underscored version of the '.
+                            'bundle name ("%s" instead of "%s")',
+                            $expectedAlias, $extension->getAlias()
+                        ));
+                }
+
+                $this->extension = $extension;
+            } else {
+                $this->extension = false;
+            }
+        }
+
+        if ($this->extension) {
+            return $this->extension;
+        }
+    }
+
+    /**
+     * Returns the resource name of the routing file, or false
      *
      * @return bool|string
      */
     public static function getRoutingFile()
+    {
+        return false;
+    }
+
+    /**
+     * Returns the class name of the menu, or false
+     *
+     * @return bool|string
+     */
+    public static function getMenuClass()
     {
         return false;
     }

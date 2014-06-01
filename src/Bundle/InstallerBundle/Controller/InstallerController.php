@@ -115,7 +115,7 @@ class InstallerController extends Controller
 
         $this->saveParameters([], true);
 
-        return ['url' => $this->generateUrl('symforium_core_core_index_index')];
+        return ['url' => $this->generateUrl('symforium_core_core_admin_index')];
     }
 
     /**
