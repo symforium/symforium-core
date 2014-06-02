@@ -158,3 +158,6 @@ section#content > .container {
 .container .row:last-child {
   margin-bottom: 0;
 }
+pre code * {
+  font-family: Consolas, Monaco, "Lucida Console";
+}
