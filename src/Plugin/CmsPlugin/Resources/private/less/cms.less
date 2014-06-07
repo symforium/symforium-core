@@ -1,0 +1,140 @@
+.header {
+    height: 52px;
+    border-bottom: 3px solid rgba(26, 188, 156, 1);
+    margin-bottom: 25px;
+
+    .title {
+        padding-left: 25px;
+        font-weight: 800;
+        font-size: 36px;
+        color: rgba(52, 73, 94, 1);
+    }
+}
+
+html, body, #wrapper, #cms_add, #cms_add > form,
+#bottomRow, #bottomRow > div, .CodeMirror, .CodeMirror-scroll,
+.CodeMirror-gutters {
+    background: rgba(236, 240, 241,1.0);
+}
+.CodeMirror-gutters {
+    background-color: rgb(247, 247, 247);
+}
+
+#content {
+    height: 100%;
+
+    > form > .row { margin: 0; }
+
+    #topRow {
+        z-index: 2;
+
+        background: rgba(52, 152, 219, .9);
+        padding: 30px;
+
+        label {
+            line-height: 1;
+            margin-bottom: 0;
+            color: rgba(236, 240, 241, 1.0);
+            font-size: 110%;
+        }
+
+        input {
+            height: 60px;
+            width: 90%;
+            font-size: 200%;
+            background: inherit;
+            border: none;
+            color: rgba(236, 240, 241, 1.0);
+        }
+
+        button[type=submit] {
+            margin-top: 15px;
+        }
+
+        ::-webkit-input-placeholder {
+            color: rgba(236, 240, 241, 1.0);
+            border-bottom: 4px dashed rgba(236, 240, 241, 1.0);
+        }
+        :-moz-placeholder {
+            color: rgba(236, 240, 241, 1.0);
+            border-bottom: 4px dashed rgba(236, 240, 241, 1.0);
+            opacity:  1;
+        }
+        ::-moz-placeholder {
+            color: rgba(236, 240, 241, 1.0);
+            border-bottom: 4px dashed rgba(236, 240, 241, 1.0);
+            opacity:  1;
+        }
+        :-ms-input-placeholder {
+            color: rgba(236, 240, 241, 1.0);
+            border-bottom: 4px dashed rgba(236, 240, 241, 1.0);
+        }
+    }
+
+    #bottomRow {
+        #in, #out, .CodeMirror {
+            background: rgba(236, 240, 241,1.0);
+            font-size: 16px;
+        }
+
+        .CodeMirror pre{
+            line-height: 20px;
+        }
+
+        #in, #out {
+            height: 100%;
+            padding: 0;
+            overflow: auto;
+        }
+
+        #in {
+            z-index: 1;
+        }
+
+        .CodeMirror {
+            height: auto;
+        }
+        .CodeMirror-scroll {
+            overflow-y: hidden;
+            overflow-x: auto;
+            min-height: 100%;
+        }
+
+        #out{
+            hr {
+                border-color: rgba(149, 165, 166,1.0);
+            }
+            h1, h2, h3, h4, h5, h6 {
+                margin: 10px 0;
+            }
+
+            padding: 0 20px;
+            color: #444;
+            line-height: 1.5em;
+        }
+
+        @media screen and (max-width: 1024px) {
+            #in {
+                display: none;
+            }
+            #out {
+                left: 0;
+                padding-left: 10px;
+            }
+        }
+
+        .view #in {
+            display: none;
+        }
+        .view #out {
+            left: 0;
+            padding-left: 10px;
+        }
+    }
+
+    div.options {
+        a > i:hover {
+            color: rgba(26, 188, 156, 1);
+        }
+    }
+}

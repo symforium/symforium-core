@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Core\Bundle\InstallerBundle\Form;
+namespace Symforium\Bundle\InstallerBundle\Form;
 
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;

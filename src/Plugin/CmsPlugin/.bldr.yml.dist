@@ -1,0 +1,81 @@
+blocks:
+    - Bldr\Block\Frontend\FrontendBlock
+
+bldr:
+    name: symforium/cms-plugin
+    description: Symforium CMS Plugin
+    profiles:
+        assets:
+            description: Compile Assets
+            tasks:
+                - destroyBuild
+                - compileLess
+                - minifyCss
+                - copyAssets
+                - destroyBuild
+        watchAssets:
+            description: Profile for watching assets
+            tasks:
+                - destroyBuild
+                - compileLess
+                - minifyCss
+                - copyAssets
+                - destroyBuild
+                - watchAssets
+
+
+    tasks:
+        destroyBuild:
+            calls:
+                -
+                    type: filesystem:remove
+                    files: [Resources/private/build]
+        compileLess:
+            calls:
+                -
+                    type: less
+                    failOnError: false
+                    src:
+                        - { path: Resources/private/less/, files: cms.less }
+                    dest: Resources/private/build/css/cms.css
+        minifyCss:
+            calls:
+                -
+                    type: minify:css
+                    failOnError: false
+                    src:
+                        - { path: Resources/private/build/css/, files: cms.css }
+                    dest: Resources/private/build/css/cms.min.css
+        copyAssets:
+            description: Copies assets from build, fonts, and images to Resources/public
+            calls:
+                -
+                    type: filesystem:remove
+                    files: [Resources/public]
+                -
+                    type: filesystem:mkdir
+                    files: [Resources/public]
+                -
+                    type: exec
+                    executable: cp
+                    arguments:
+                        - -r
+                        - Resources/private/build/css
+                        - Resources/public/
+                -
+                    type: exec
+                    executable: cp
+                    arguments:
+                        - -r
+                        - Resources/private/images
+                        - Resources/public/
+
+        watchAssets:
+            description: Watches for changes in the Resources/private directory
+            calls:
+                -
+                    type: watch
+                    failOnError: false
+                    src:
+                        - { path: Resources/private/, files: [*], recursive: true }
+                    profile: assets

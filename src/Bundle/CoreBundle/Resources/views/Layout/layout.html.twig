@@ -16,32 +16,26 @@
     <body id="{{ bodyType }}">
         {% block body %}
             {% block navigation %}
-                <div id="navigation">
-                    <nav class="navbar navbar-inverse navbar-fixed-top navbar-lg" role="navigation">
-                        <div class="{{ containerClass }}">
-                            <div class="navbar-header">
-                                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar-collapse">
-                                    <span class="sr-only">Toggle navigation</span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                    <span class="icon-bar"></span>
-                                </button>
-                                <a class="navbar-brand" href="/">{{ 'symforium.title'|trans|raw }}</a>
-                            </div>
-                            <div class="collapse navbar-collapse" id="main-navbar-collapse">
-                                {% block menu %}{% endblock %}
-                            </div>
+                <nav id="navigation" class="navbar navbar-inverse navbar-lg" role="navigation">
+                    <div class="{{ containerClass }}">
+                        <div class="navbar-header">
+                            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#main-navbar-collapse">
+                                <span class="sr-only">Toggle navigation</span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                                <span class="icon-bar"></span>
+                            </button>
+                            <a class="navbar-brand" href="/">{{ 'symforium.title'|trans|raw }}</a>
                         </div>
-                    </nav>
-                </div>
+                        <div class="collapse navbar-collapse" id="main-navbar-collapse">
+                            {% block menu %}{% endblock %}
+                        </div>
+                    </div>
+                </nav>
             {% endblock %}
 
-            <section id="content">
-                {% block contentSection %}
-                    <div class="{{ containerClass }}">
-                        {% block content %}{% endblock %}
-                    </div>
-                {% endblock %}
+            <section id="wrapper" class="{{ containerClass }}">
+                {% block wrapper %}{% endblock %}
             </section>
         {% endblock %}
     </body>

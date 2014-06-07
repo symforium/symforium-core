@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Core\Bundle\CoreBundle;
+namespace Symforium\Bundle\CoreBundle;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;

@@ -6,8 +6,8 @@ $.fn.extend({
         var defaults = {
             accordion : 'true',
             speed : 200,
-            closedSign : '[+]',
-            openedSign : '[-]'
+            closedSign : '<em class="fa fa-plus-square-o"></em>',
+            openedSign : '<em class="fa fa-minus-square-o"></em>'
         };
 
         // Extend our default options with those provided.
@@ -17,13 +17,21 @@ $.fn.extend({
 
         //add a mark [+] to a multilevel menu
         $this.find("li").each(function() {
-            if ($(this).find("ul").size() != 0) {
+            var li   = $(this),
+                icon = li.attr('icon'),
+                a    = li.find("a:first");
+
+            if (icon !== undefined) {
+                $('<i/>').addClass('fa').addClass('fa-'+icon).prependTo(a);
+            }
+
+            if (li.find("ul").size() != 0) {
                 //add the multilevel sign next to the link
-                $(this).find("a:first").append("<b class='collapse-sign'>" + opts.closedSign + "</b>");
+                a.append("<b class='collapse-sign'>" + opts.closedSign + "</b>");
 
                 //avoid jumping to the top of the page when the href is an #
-                if ($(this).find("a:first").attr('href') == "#") {
-                    $(this).find("a:first").click(function() {
+                if (a.attr('href') == "#") {
+                    a.click(function() {
                         return false;
                     });
                 }

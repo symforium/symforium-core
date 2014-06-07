@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Core\Bundle\CoreBundle\Loader;
+namespace Symforium\Bundle\CoreBundle\Loader;
 
 use Symfony\Component\Config\Loader\LoaderResolverInterface;
 use Symfony\Component\Config\Loader\Loader;

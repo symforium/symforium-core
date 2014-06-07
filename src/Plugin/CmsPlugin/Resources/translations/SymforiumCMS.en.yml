@@ -1,0 +1,14 @@
+symforium.cms.add.sample: |
+    Creating a Static Page
+    ----------------------
+
+    Pages with Symforium are parsed with [Markdown][0]. To get a brief synopsis of how to write markdown, [check out this guide][1].
+
+    If there is something you can't do with Markdown, you will be able to simply use html. For example, to make a marquee, just use:
+
+        <marquee>This is a marquee</marquee>
+
+    <marquee>This is a marquee</marquee>
+
+    [0]: http://en.wikipedia.org/wiki/Markdown
+    [1]: http://daringfireball.net/projects/markdown/syntax

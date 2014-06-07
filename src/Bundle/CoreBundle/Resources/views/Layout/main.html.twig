@@ -21,3 +21,7 @@
         {% endif %}
     </ul>
 {% endblock %}
+
+{% block wrapper %}
+    <div id="content">{% block content %}{% endblock %}</div>
+{% endblock %}

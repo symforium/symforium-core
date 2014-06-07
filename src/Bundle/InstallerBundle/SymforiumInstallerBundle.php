@@ -1,6 +1,6 @@
 <?php
 
-namespace Symforium\Core\Bundle\InstallerBundle;
+namespace Symforium\Bundle\InstallerBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

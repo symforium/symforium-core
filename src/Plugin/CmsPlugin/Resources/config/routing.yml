@@ -1,0 +1,4 @@
+symforium_cms:
+    resource: "@SymforiumCmsPlugin/Controller/"
+    type:     annotation
+    prefix:   /

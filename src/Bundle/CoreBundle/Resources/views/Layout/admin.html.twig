@@ -13,31 +13,21 @@
 {% block stylesheets %}
     {{ parent() }}
     <link rel="stylesheet" type="text/css" media="all" href="/bundles/symforiumcore/css/admin.css" />
-    <style type="text/css">
-        #content {
-            padding-left: 200px;
-        }
-
-        #logo > a:after {
-            content: '{{ 'symforium.admin.title'|trans }}';
-            font-size: 70%;
-            top: -2px;
-            position: relative;
-        }
-    </style>
 {% endblock %}
 
 {% block menu %}
+    <p class="navbar-text page-header" >{{ title }}</p>
     <ul class="nav navbar-nav navbar-right">
         <li><a href="{{ url('symforium_core_core_admin_index') }}">View Site</a></li>
     </ul>
 {% endblock %}
 
-{% block contentSection %}
-    <nav id="admin-nav">
+{% block wrapper %}
+    <nav id="sidebar" class="col-sm-2">
         {{ knp_menu_render('admin', {'currentClass': 'active'}) }}
     </nav>
-    <div id="admin-content">
+    <div id="content" class="col-sm-10">
+       {{ wo_render_breadcrumbs() }}
         {% block content %}{% endblock %}
     </div>
 {% endblock %}

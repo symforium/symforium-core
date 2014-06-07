@@ -9,12 +9,12 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Core\Bundle\InstallerBundle\Form\Installer;
+namespace Symforium\Bundle\InstallerBundle\Form\Installer;
 
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 use Symfony\Component\Validator\Constraints;
-use Symforium\Core\Bundle\InstallerBundle\Form\AbstractInstallerForm;
+use Symforium\Bundle\InstallerBundle\Form\AbstractInstallerForm;
 
 /**
  * @author Aaron Scherer <aequasi@gmail.com>

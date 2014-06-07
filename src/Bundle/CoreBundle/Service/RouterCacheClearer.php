@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Core\Bundle\CoreBundle\Service;
+namespace Symforium\Bundle\CoreBundle\Service;
 
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;

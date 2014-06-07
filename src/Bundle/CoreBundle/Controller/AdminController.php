@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Core\Bundle\CoreBundle\Controller;
+namespace Symforium\Bundle\CoreBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration as Sensio;

@@ -18,9 +18,10 @@ use Knp\Bundle\MarkdownBundle\KnpMarkdownBundle;
 use Knp\Bundle\MenuBundle\KnpMenuBundle;
 use Sensio\Bundle as SensioBundle;
 use Symfony\Bundle as SymfonyBundle;
+use Symforium\Bundle as SymforiumBundle;
+use Symforium\Plugin as SymforiumPlugin;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\HttpKernel\Kernel as SymfonyKernel;
-use Symforium\Plugin\CmsPlugin\SymforiumCmsPlugin;
 use WhiteOctober\BreadcrumbsBundle\WhiteOctoberBreadcrumbsBundle;
 
 /**
@@ -81,16 +82,15 @@ abstract class Kernel extends SymfonyKernel
             new SymfonyBundle\TwigBundle\TwigBundle(),
             new SymfonyBundle\MonologBundle\MonologBundle(),
             new SymfonyBundle\SwiftmailerBundle\SwiftmailerBundle(),
-            new DoctrineBundle(),
             new SensioBundle\FrameworkExtraBundle\SensioFrameworkExtraBundle(),
+            new DoctrineBundle(),
             new WhiteOctoberBreadcrumbsBundle(),
             new KnpMarkdownBundle(),
             new FOSUserBundle(),
             new KnpMenuBundle(),
-            //new AequasiCacheBundle(),
-            new Bundle\CoreBundle\SymforiumCoreBundle(),
-            new Bundle\UserBundle\SymforiumUserBundle(),
-            new SymforiumCmsPlugin()
+            new SymforiumBundle\CoreBundle\SymforiumCoreBundle(),
+            new SymforiumBundle\UserBundle\SymforiumUserBundle(),
+            new SymforiumPlugin\CmsPlugin\SymforiumCmsPlugin()
         ];
 
         if (in_array($this->getEnvironment(), ['dev', 'test'])) {
@@ -100,7 +100,7 @@ abstract class Kernel extends SymfonyKernel
                     new SymfonyBundle\WebProfilerBundle\WebProfilerBundle(),
                     new SensioBundle\DistributionBundle\SensioDistributionBundle(),
                     new SensioBundle\GeneratorBundle\SensioGeneratorBundle(),
-                    new Bundle\InstallerBundle\SymforiumInstallerBundle()
+                    new SymforiumBundle\InstallerBundle\SymforiumInstallerBundle()
                 ]
             );
         }

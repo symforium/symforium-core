@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Core\Bundle\CoreBundle\Menu;
+namespace Symforium\Bundle\CoreBundle\Menu;
 
 use Knp\Menu\FactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -55,14 +55,17 @@ class Builder extends ContainerAware
         $menu->setCurrentUri($request->getRequestUri());
         $menu->setChildrenAttribute('class', 'nav nav-pills nav-stacked');
 
-        $menu->addChild('Dashboard', array('route' => 'symforium_core_core_admin_index'))
+        $menu->addChild('Dashboard', ['route' => 'symforium_core_core_admin_index'])
             ->setAttribute('icon', 'dashboard');
-        $menu->addChild('Settings', array('uri' => '#'))
-            ->setAttribute('icon', 'gears');
 
-        $pluginMenu = $menu->addChild('Plugins', array('uri' => '#'))
-            ->setAttribute('dropdown', true)
+        $this->addSettingsMenu($menu);
+
+        $pluginMenu = $menu->addChild('Plugins', ['uri' => '#'])
+            //->setAttribute('dropdown', true)
             ->setAttribute('icon', 'globe');
+
+
+
         foreach ($this->plugins as $plugin) {
             $class = $plugin::getMenuClass();
             if ($class === false) {
@@ -78,6 +81,21 @@ class Builder extends ContainerAware
         }
 
         return $menu;
+    }
+
+    private function addSettingsMenu(ItemInterface $menu)
+    {
+        $settings = $menu->addChild('Settings', ['uri' => '#'])
+            ->setAttribute('icon', 'gears');
+
+        $settings->addChild('Application', ['uri' => '#'])
+            ->setAttribute('icon', 'sliders');
+
+        $settings->addChild('Database', ['uri' => '#'])
+            ->setAttribute('icon', 'database');
+
+        $settings->addChild('Menu', ['uri' => '#'])
+            ->setAttribute('icon', 'bars');
     }
 }
  

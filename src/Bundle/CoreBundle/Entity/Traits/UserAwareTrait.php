@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Core\Bundle\CoreBundle\Entity\Traits;
+namespace Symforium\Bundle\CoreBundle\Entity\Traits;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -21,23 +21,23 @@ use Doctrine\ORM\Mapping as ORM;
 trait UserAwareTrait
 {
     /**
-     * @var \Symforium\Core\Bundle\CoreBundle\Entity\User $insertUser
+     * @var \Symforium\Bundle\CoreBundle\Entity\User $insertUser
      *
-     * @ORM\ManyToOne(targetEntity="\Symforium\Core\Bundle\CoreBundle\Entity\User")
+     * @ORM\ManyToOne(targetEntity="\Symforium\Bundle\CoreBundle\Entity\User")
      * @ORM\JoinColumn(name="insert_user_id", referencedColumnName="id", nullable=false)
      */
     protected $insertUser;
 
     /**
-     * @var \Symforium\Core\Bundle\CoreBundle\Entity\User $modifiedUser
+     * @var \Symforium\Bundle\CoreBundle\Entity\User $modifiedUser
      *
-     * @ORM\ManyToOne(targetEntity="\Symforium\Core\Bundle\CoreBundle\Entity\User")
+     * @ORM\ManyToOne(targetEntity="\Symforium\Bundle\CoreBundle\Entity\User")
      * @ORM\JoinColumn(name="modified_user_id", referencedColumnName="id", nullable=false)
      */
     protected $modifiedUser;
 
     /**
-     * @return User
+     * @return \Symforium\Bundle\CoreBundle\Entity\User
      */
     public function getInsertUser()
     {
@@ -45,9 +45,9 @@ trait UserAwareTrait
     }
 
     /**
-     * @param User $insertUser
+     * @param \Symforium\Bundle\CoreBundle\Entity\User $insertUser
      *
-     * @return UserAwareTrait
+     * @return $this
      */
     public function setInsertUser($insertUser)
     {
@@ -57,7 +57,7 @@ trait UserAwareTrait
     }
 
     /**
-     * @return mixed
+     * @return \Symforium\Bundle\CoreBundle\Entity\User
      */
     public function getModifiedUser()
     {
@@ -67,7 +67,7 @@ trait UserAwareTrait
     /**
      * @param mixed $modifiedUser
      *
-     * @return UserAwareTrait
+     * @return $this
      */
     public function setModifiedUser($modifiedUser)
     {

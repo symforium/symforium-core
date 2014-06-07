@@ -1,6 +1,6 @@
 <?php
 
-namespace Symforium\Core\Bundle\InstallerBundle\DependencyInjection;
+namespace Symforium\Bundle\InstallerBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;

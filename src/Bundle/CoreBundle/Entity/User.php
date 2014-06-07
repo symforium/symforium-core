@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Core\Bundle\CoreBundle\Entity;
+namespace Symforium\Bundle\CoreBundle\Entity;
 
 use FOS\UserBundle\Entity\User as FOSUser;
 use Doctrine\ORM\Mapping as ORM;

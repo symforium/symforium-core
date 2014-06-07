@@ -1,6 +1,6 @@
 <?php
 
-namespace Symforium\Core\Bundle\InstallerBundle\Controller;
+namespace Symforium\Bundle\InstallerBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration as Config;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;

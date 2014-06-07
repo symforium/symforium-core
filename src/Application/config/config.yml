@@ -61,16 +61,17 @@ swiftmailer:
     spool:     { type: memory }
 
 white_october_breadcrumbs:
-    separator: '>'
+    #separator: ''
+    viewTemplate: SymforiumCoreBundle:Layout:breadcrumbs.html.twig
 
 fos_user:
     db_driver: orm # other valid values are 'mongodb', 'couchdb' and 'propel'
     firewall_name: main
     user_class: Symforium\Core\Bundle\CoreBundle\Entity\User
 
-knp_menu:
-    twig:
-        template: SymforiumCoreBundle:Layout:knp_menu.html.twig
+#knp_menu:
+#    twig:
+#        template: SymforiumCoreBundle:Layout:knp_menu.html.twig
 
 #aequasi_cache:
 #    instances:

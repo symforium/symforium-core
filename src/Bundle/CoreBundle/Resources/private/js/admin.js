@@ -1,8 +1,16 @@
 $(function() {
-    $('nav ul').jarvismenu({
+    $('nav#sidebar ul').jarvismenu({
         accordion : true,
-        speed : 235,
-        closedSign : '<em class="fa fa-expand-o"></em>',
-        openedSign : '<em class="fa fa-collapse-o"></em>'
+        speed : 235
     });
+
+    $('.breadcrumb li:last-of-type').addClass('active');
 });
+
+var changeContent = function() {
+    $('#wrapper').css('height', ($(window).height() - 76) + 'px');
+};
+
+$(window).on('resize', changeContent);
+
+$(changeContent);

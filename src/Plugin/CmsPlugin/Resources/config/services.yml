@@ -1,0 +1,16 @@
+parameters:
+    symforium.cms.form.page.class: Symforium\Plugin\CmsPlugin\Form\PageForm
+    syfmorium.cms.listener.cms_route.class: Symforium\Plugin\CmsPlugin\Listener\CmsRouteListener
+
+services:
+    symforium.cms.listener.cms_route:
+        class: %syfmorium.cms.listener.cms_route.class%
+        arguments: [@doctrine.orm.default_entity_manager]
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, priority: 33 }
+
+    symforium.cms.form.page:
+        class: %symforium.cms.form.page.class%
+        arguments: [@router]
+        tags:
+            - { name: form.type, alias: symforium_cms_page }

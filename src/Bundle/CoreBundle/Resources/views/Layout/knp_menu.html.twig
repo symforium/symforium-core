@@ -50,12 +50,12 @@
 
         {# adding classes for dropdown #}
         {%- if is_dropdown %}
-            {%- set classes = classes|merge(['dropdown']) %}
+            {#%- set classes = classes|merge(['dropdown']) %#}
         {%- endif %}
 
         {# putting classes together #}
         {% if item.level > 1 and is_dropdown %}
-            {% set classes = classes|merge(['dropdown-submenu']) %}
+            {#% set classes = classes|merge(['dropdown-submenu']) %#}
         {% endif %}
         {%- set attributes = attributes|merge({'class': classes|join(' ')}) %}
         {%- set listAttributes = item.childrenAttributes|merge({'class': childrenClasses|join(' ') }) %}
@@ -120,9 +120,9 @@
     {#%- set attributes = attributes|merge({'data-toggle': 'dropdown'}) %#}
     <a href="#"{{ macros.attributes(attributes) }}>
         {{ block('label') }}
-        {% if item.level == 1 %}
-            <em class="fa fa-expand-o"></em>
-        {% endif %}
+        {# % if item.level == 1 %}
+            <em class="fa fa-expand"></em>
+        {% endif %#}
     </a>
     <span class="dropdown-arrow"></span>
 {% endblock %}

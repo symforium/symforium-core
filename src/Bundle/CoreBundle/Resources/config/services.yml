@@ -1,40 +1,40 @@
 services:
-    symforium.core.core_bundle.loader.plugin_route_loader:
-        class: Symforium\Core\Bundle\CoreBundle\Loader\PluginRouteLoader
+    symforium.core_bundle.loader.plugin_route_loader:
+        class: Symforium\Bundle\CoreBundle\Loader\PluginRouteLoader
         arguments:
             - %symforium.plugins%
         tags:
             - { name: routing.loader }
 
 
-    symforium.core.core_bundle.menu.builder:
-        class: Symforium\Core\Bundle\CoreBundle\Menu\Builder
+    symforium.core_bundle.menu.builder:
+        class: Symforium\Bundle\CoreBundle\Menu\Builder
         arguments: [%symforium.plugins%, @knp_menu.factory]
 
-    symforium.core.menu.admin:
-        class: Knp\Menu\MenuItem # the service definition requires setting the class
-        factory_service: symforium.core.core_bundle.menu.builder
+    symforium.menu.admin:
+        class: Knp\Menu\MenuItem
+        factory_service: symforium.core_bundle.menu.builder
         factory_method: createAdminMenu
         arguments: ["@request"]
-        scope: request # needed as we have the request as a dependency here
+        scope: request
         tags:
-            - { name: knp_menu.menu, alias: admin } # The alias is what is used to retrieve the menu
+            - { name: knp_menu.menu, alias: admin }
 
-    symforium.core.listener.doctrine_persistance:
-        class: Symforium\Core\Bundle\CoreBundle\Listener\DoctrinePersistanceListener
+    symforium.listener.doctrine_persistance:
+        class: Symforium\Bundle\CoreBundle\Listener\DoctrinePersistanceListener
         arguments: [@service_container]
         tags:
             - { name: doctrine.event_listener, event: prePersist }
 
-    symforium.core.listener.exception:
-        class: Symforium\Core\Bundle\CoreBundle\Listener\ExceptionListener
+    symforium.listener.exception:
+        class: Symforium\Bundle\CoreBundle\Listener\ExceptionListener
         arguments: [@templating]
         tags:
             - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }
 
-    symforium.core.service.router_cache_clearer:
-        class: Symforium\Core\Bundle\CoreBundle\Service\RouterCacheClearer
+    symforium.service.router_cache_clearer:
+        class: Symforium\Bundle\CoreBundle\Service\RouterCacheClearer
         arguments: [%kernel.cache_dir%]
 
     router_cache_clearer:
-        alias: symforium.core.service.router_cache_clearer
+        alias: symforium.service.router_cache_clearer

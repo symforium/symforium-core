@@ -1,0 +1,129 @@
+{% extends 'SymforiumCmsPlugin:Backend:index.html.twig' %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+        Mousetrap.bindGlobal('mod+s', function(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            } else {
+                e.returnValue = false;
+            }
+
+            $('button[type=submit]').click();
+        });
+
+        $(function () {
+            $('input[id$=url]').on('keypress', function(e) {
+                e.preventDefault();
+                $(this).data('user-input', true);
+
+                var value = String.fromCharCode(e.keyCode).toLowerCase().replace(/[\s]+/, '-'),
+                    regex = /^[\\a-z0-9-_]+/gi;
+
+                if (this.value.charAt(0) !== '/') {
+                    this.value = '/'+this.value;
+                }
+
+                if (!regex.test(value)) {
+                    return false;
+                }
+
+                this.value += value;
+            });
+
+            $('input[id$=title]').on('keyup', function() {
+                var url       = $('input[id$=url]'),
+                    userInput = url.data('user-input');
+
+                if (url.val() === '') {
+                    userInput = false;
+                    url.data('user-input', userInput);
+                }
+
+                if (userInput === undefined || userInput === false) {
+                    url.val('/'+getSlug($(this).val()))
+                }
+            });
+
+            // Because highlight.js is a bit awkward at times
+            var languageOverrides = {
+                js: 'javascript',
+                html: 'xml'
+            };
+
+            marked.setOptions({
+                highlight: function(code, lang){
+                    if (languageOverrides[lang]) {
+                        lang = languageOverrides[lang];
+                    }
+
+                    return hljs.getLanguage(lang) !== undefined ? hljs.highlight(lang, code).value : code;
+                }
+            });
+
+            function update(text) {
+                setOutput(text);
+            }
+
+            function setOutput(val){
+                document.getElementById('out').innerHTML = marked(val);
+            }
+
+            var content = $("textarea[id$=content]");
+            content.tabby();
+            var editor = CodeMirror.fromTextArea(
+                content[0],
+                {
+                    mode: 'gfm',
+                    lineNumbers: true,
+                    //matchBrackets: true,,
+                    viewportMargin: Infinity,
+                    lineWrapping: true,
+                    theme: 'default'
+                }
+            );
+
+            editor.on('change', function(editor, e) {
+                editor.save();
+                update(content.val());
+            });
+
+            update(content.val());
+            editor.focus();
+        })
+    </script>
+{% endblock %}
+
+{% block cms_content %}
+    {{ form_start(form, { 'attr': {'class': 'form-horizontal', 'novalidate': 'true', 'autocomplete': 'off'} }) }}
+        {{ form_errors(form) }}
+        <div class="row" id="topRow">
+            <div class="col-sm-4">
+                {{ form_widget(form.title) }}
+            </div>
+            <div class="col-sm-4">
+                {{ form_widget(form.url) }}
+            </div>
+            <div class="col-sm-1">
+                <div class="row">
+                    {{ form_label(form.published) }}
+                </div>
+                <div class="row">
+                    <div class="switch switch-square" data-on-label="<i class='fui-check'></i>" data-off-label="<i class='fui-cross'></i>">
+                        {{ form_widget(form.published) }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-3">
+                {{ form_widget(form.submit) }}
+            </div>
+        </div>
+        <div class="row" id="bottomRow">
+            <div id="in" class="col-sm-6">
+                {{ form_widget(form.content) }}
+            </div>
+            <div id="out" class="col-sm-6"></div>
+        </div>
+    {{ form_end(form) }}
+{% endblock %}

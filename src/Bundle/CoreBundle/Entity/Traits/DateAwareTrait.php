@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Core\Bundle\CoreBundle\Entity\Traits;
+namespace Symforium\Bundle\CoreBundle\Entity\Traits;
 
 use Doctrine\ORM\Mapping as ORM;
 
@@ -36,10 +36,14 @@ trait DateAwareTrait
 
     /**
      * @param \DateTime $insertDate
+     *
+     * @return $this
      */
     public function setInsertDate($insertDate)
     {
         $this->insertDate = $insertDate;
+
+        return $this;
     }
 
     /**
@@ -52,10 +56,14 @@ trait DateAwareTrait
 
     /**
      * @param \DateTime $modifiedDate
+     *
+     * @return $this
      */
     public function setModifiedDate($modifiedDate)
     {
         $this->modifiedDate = $modifiedDate;
+
+        return $this;
     }
 
     /**

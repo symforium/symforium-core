@@ -1,0 +1,41 @@
+{% extends 'SymforiumCmsPlugin:Backend:index.html.twig' %}
+
+{% block cms_content %}
+    <div class="content">
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>URL</th>
+                    <th>Created On</th>
+                    <th>Last Updated</th>
+                    <th>Created By</th>
+                    <th>Updated By</th>
+                    <th>Options</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for page in pages %}
+                    <tr>
+                        <td>{{ page.title }}</td>
+                        <td>
+                            <a href="{{ app.request.schemeAndHttpHost }}{{ page.url }}" target="_blank">
+                                {{ app.request.schemeAndHttpHost }}{{ page.url }}
+                            </a>
+                        </td>
+                        <td>{{ page.insertDate.format('M jS, Y \a\t\ g:ia') }}</td>
+                        <td>{{ page.modifiedDate.format('M jS, Y \a\t\ g:ia') }}</td>
+                        <td>{{ page.insertUser.username }}</td>
+                        <td>{{ page.modifiedUser.username }}</td>
+                        <td>
+                            <div class="options">
+                                <a href="{{ path('symforium_plugin_cmsplugin_backend_edit', {'page': page.id}) }}"><i class="fa fa-edit"></i></a>
+                                <a href="{{ path('symforium_plugin_cmsplugin_backend_delete', {'page': page.id}) }}"><i class="fa fa-times"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

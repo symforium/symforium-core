@@ -1,0 +1,16 @@
+{% extends 'SymforiumCoreBundle:Layout:admin.html.twig' %}
+{% set title = 'CMS -' ~ title %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" type="text/css" media="all" href="/bundles/symforiumcmsplugin/css/cms.css" />
+{% endblock %}
+
+{% block menu %}
+
+    {{ parent() }}
+{% endblock %}
+
+{% block content %}
+    {% block cms_content %}{% endblock %}
+{% endblock %}
