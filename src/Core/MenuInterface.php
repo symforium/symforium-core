@@ -12,6 +12,7 @@
 namespace Symforium\Core;
 
 use Knp\Menu\ItemInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
@@ -19,8 +20,9 @@ use Knp\Menu\ItemInterface;
 interface MenuInterface
 {
     /**
+     * @param Request       $request
      * @param ItemInterface $menu
      */
-    public function build(ItemInterface $menu);
+    public function build(Request $request, ItemInterface $menu);
 }
  

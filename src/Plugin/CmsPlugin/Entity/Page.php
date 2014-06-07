@@ -12,7 +12,7 @@
 namespace Symforium\Plugin\CmsPlugin\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Symforium\Core\Bundle\CoreBundle\Entity\Traits as CoreTraits;
+use Symforium\Bundle\CoreBundle\Entity\Traits as CoreTraits;
 
 /**
  * @author Aaron Scherer <aequasi@gmail.com>

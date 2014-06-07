@@ -4,7 +4,7 @@ imports:
 framework:
     profiler: { only_exceptions: false }
     router:
-        resource: "%symforium.core_dir%/Application/config/routing_dev.yml"
+        resource: "%symforium.app_dir%/config/routing_dev.yml"
 
 web_profiler:
     toolbar: true

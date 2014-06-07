@@ -35,7 +35,7 @@ class BackendController extends Controller
     public function viewAction()
     {
         $breadcrumbs = $this->get("white_october_breadcrumbs");
-        $breadcrumbs->addItem("Backend", $this->generateUrl("symforium_core_core_admin_index"));
+        $breadcrumbs->addItem("Backend", $this->generateUrl("symforium_core_admin_index"));
         $breadcrumbs->addItem("Cms Pages", $this->generateUrl("symforium_plugin_cmsplugin_backend_view"));
 
         $repo = $this->getDoctrine()->getManager()->getRepository('SymforiumCmsPlugin:Page');
@@ -72,7 +72,7 @@ class BackendController extends Controller
     public function addAction(Request $request)
     {
         $breadcrumbs = $this->get("white_october_breadcrumbs");
-        $breadcrumbs->addItem("Backend", $this->generateUrl("symforium_core_core_admin_index"));
+        $breadcrumbs->addItem("Backend", $this->generateUrl("symforium_core_admin_index"));
         $breadcrumbs->addItem("Cms Pages", $this->generateUrl("symforium_plugin_cmsplugin_backend_view"));
         $breadcrumbs->addItem("Add a New Page", $this->generateUrl("symforium_plugin_cmsplugin_backend_add"));
 
@@ -91,7 +91,7 @@ class BackendController extends Controller
     public function editAction(Request $request, Page $page)
     {
         $breadcrumbs = $this->get("white_october_breadcrumbs");
-        $breadcrumbs->addItem("Backend", $this->generateUrl("symforium_core_core_admin_index"));
+        $breadcrumbs->addItem("Backend", $this->generateUrl("symforium_core_admin_index"));
         $breadcrumbs->addItem("Cms Pages", $this->generateUrl("symforium_plugin_cmsplugin_backend_view"));
         $breadcrumbs->addItem("Edit Page", $this->generateUrl("symforium_plugin_cmsplugin_backend_edit", ['page' => $page->getId()]));
 

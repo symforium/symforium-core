@@ -5,7 +5,7 @@ imports:
 framework:
     secret:          "%secret%"
     router:
-        resource: "%symforium.core_dir%/Application/config/routing.yml"
+        resource: "%symforium.app_dir%/config/routing.yml"
     validation:      { enable_annotations: true }
     templating:
         engines: ['twig']
@@ -67,7 +67,7 @@ white_october_breadcrumbs:
 fos_user:
     db_driver: orm # other valid values are 'mongodb', 'couchdb' and 'propel'
     firewall_name: main
-    user_class: Symforium\Core\Bundle\CoreBundle\Entity\User
+    user_class: Symforium\Bundle\CoreBundle\Entity\User
 
 #knp_menu:
 #    twig:

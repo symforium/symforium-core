@@ -28,11 +28,18 @@ bldr:
     tasks:
         destroyBuild:
             calls:
+                # Core Bundle #
                 -
                     type: filesystem:remove
                     files: [src/Bundle/CoreBundle/Resources/private/build]
+
+                # CMS Plugin #
+                -
+                    type: filesystem:remove
+                    files: [src/Plugin/CmsPlugin/Resources/private/build]
         compileLess:
             calls:
+                # Core Bundle #
                 -
                     type: less
                     failOnError: false
@@ -45,8 +52,17 @@ bldr:
                     src:
                         - { path: src/Bundle/CoreBundle/Resources/private/less/, files: admin.less }
                     dest: src/Bundle/CoreBundle/Resources/private/build/css/adminLess.css
+
+                # CMS Plugin #
+                -
+                    type: less
+                    failOnError: false
+                    src:
+                        - { path: src/Plugin/CmsPlugin/Resources/private/less/, files: cms.less }
+                    dest: src/Plugin/CmsPlugin/Resources/private/build/css/cms.css
         minifyCss:
             calls:
+                # Core Bundle #
                 -
                     type: concat
                     src:
@@ -74,8 +90,17 @@ bldr:
                     src:
                         - { path: src/Bundle/CoreBundle/Resources/private/build/css/, files: admin.css }
                     dest: src/Bundle/CoreBundle/Resources/private/build/css/admin.min.css
+
+                # CMS Plugin #
+                -
+                    type: minify:css
+                    failOnError: false
+                    src:
+                        - { path: src/Plugin/CmsPlugin/Resources/private/build/css/, files: cms.css }
+                    dest: src/Plugin/CmsPlugin/Resources/private/build/css/cms.min.css
         minifyJs:
             calls:
+                # Core Bundle #
                 -
                     type: minify:js
                     failOnError: false
@@ -138,9 +163,12 @@ bldr:
                         - { path: src/Bundle/CoreBundle/Resources/private/build/js/, files: admin.js }
                     dest: src/Bundle/CoreBundle/Resources/private/build/js/admin.min.js
 
+                # CMS Plugin #
+                # @todo Need to add these
         copyAssets:
             description: Copies assets from build, fonts, and images to src/Bundle/CoreBundle/Resources/public
             calls:
+                # Core Bundle #
                 -
                     type: filesystem:remove
                     files: [src/Bundle/CoreBundle/Resources/public]
@@ -183,12 +211,35 @@ bldr:
                         - src/Bundle/CoreBundle/Resources/private/images
                         - src/Bundle/CoreBundle/Resources/public/
 
+                # CMS Plugin #
+                -
+                    type: filesystem:remove
+                    files: [src/Plugin/CmsPlugin/Resources/public]
+                -
+                    type: filesystem:mkdir
+                    files: [src/Plugin/CmsPlugin/Resources/public]
+                -
+                    type: exec
+                    executable: cp
+                    arguments:
+                        - -r
+                        - src/Plugin/CmsPlugin/Resources/private/build/css
+                        - src/Plugin/CmsPlugin/Resources/public/
+                -
+                    type: exec
+                    executable: cp
+                    arguments:
+                        - -r
+                        - src/Plugin/CmsPlugin/Resources/private/images
+                        - src/Plugin/CmsPlugin/Resources/public/
+
         watchAssets:
-            description: Watches for changes in the src/Bundle/CoreBundle/Resources/private directory
+            description: Watches for changes in the CoreBundle and CmsPlugin's private resource directories
             calls:
                 -
                     type: watch
                     failOnError: false
                     src:
                         - { path: src/Bundle/CoreBundle/Resources/private/, files: [*], recursive: true }
+                        - { path: src/Plugin/CmsPlugin/Resources/private/, files: [*], recursive: true }
                     profile: assets

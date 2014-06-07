@@ -55,7 +55,7 @@ class Builder extends ContainerAware
         $menu->setCurrentUri($request->getRequestUri());
         $menu->setChildrenAttribute('class', 'nav nav-pills nav-stacked');
 
-        $menu->addChild('Dashboard', ['route' => 'symforium_core_core_admin_index'])
+        $menu->addChild('Dashboard', ['route' => 'symforium_core_admin_index'])
             ->setAttribute('icon', 'dashboard');
 
         $this->addSettingsMenu($menu);
@@ -77,7 +77,7 @@ class Builder extends ContainerAware
                 throw new \Exception("Menu for $plugin does not implement Symforium\\Core\\MenuInterface");
             }
 
-            $pluginMenuClass->build($pluginMenu);
+            $pluginMenuClass->build($request, $pluginMenu);
         }
 
         return $menu;

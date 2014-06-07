@@ -53,6 +53,7 @@ abstract class Kernel extends SymfonyKernel
             parent::getKernelParameters(),
             array(
                 'symforium.core_dir' => realpath(__DIR__),
+                'symforium.app_dir' => realpath(__DIR__.'/../Application/'),
                 'symforium.plugins'  => $plugins
             )
         );
@@ -123,7 +124,7 @@ abstract class Kernel extends SymfonyKernel
      */
     final public function registerContainerConfiguration(LoaderInterface $loader)
     {
-        $loader->load(__DIR__.'/Application/config/config_'.$this->environment.'.yml');
+        $loader->load(__DIR__.'/../Application/config/config_'.$this->environment.'.yml');
         $this->registerSymforiumConfiguration($loader);
     }
 
