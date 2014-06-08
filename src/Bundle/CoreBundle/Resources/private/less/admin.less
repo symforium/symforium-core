@@ -1,12 +1,30 @@
+@border: rgba(149, 165, 166, 0.2);
+@headerColor: rgba(52, 73, 94, 1.0);
 
-html, body {
+html, body, #wrapper {
     background: rgba(236, 240, 241,1.0);
+}
+
+.alert.flash-notice {
+    margin-bottom: 0;
+}
+
+.fixed-bottom {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    border-radius: 0;
 }
 
 #wrapper {
     height: 200px;
     padding: 0;
+
+    .fixed-bottom {
+        width: 83.333333333334%;
+    }
 }
+
 
 .breadcrumb {
     margin-bottom: 0;
@@ -311,6 +329,68 @@ nav#sidebar {
                         text-align: center !important;
                     }
                 }
+            }
+        }
+    }
+}
+
+.settings {
+    padding: 15px 0;
+    margin-bottom: 70px;
+
+    form {
+
+        .row , .row > div {
+            min-height: 100px;
+        }
+
+        .row:first-of-type {
+            border-top: 1px solid @border;
+        }
+
+        .row:last-of-type {
+            border-bottom: 1px solid @border;
+        }
+
+        .row > div {
+            padding: 20px;
+        }
+
+        .row > div:first-of-type {
+            border-right: 1px solid @border;
+        }
+
+        .row > div:last-of-type {
+            p {
+                font-size: 110%;
+            }
+        }
+
+        label {
+            font-size: 130%;
+            font-weight: bold;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        button[type=submit] {
+            height: 85px;
+        }
+    }
+
+    .page-header {
+        margin-top: 30px;
+        padding: 0 15px;
+
+        h3 {
+            color: @headerColor;
+
+            > small {
+                font-size: 60%;
+                border-bottom: 1px dotted @headerColor;
+                margin-left: 5px;
+                font-style: italic;
+                color: @headerColor;
             }
         }
     }

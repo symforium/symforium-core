@@ -1,0 +1,30 @@
+parameters:
+    symforium.core_bundle.form.abstract.class: Symforium\Bundle\CoreBundle\Form\AbstractForm
+    symforium.core_bundle.form.settings.application.class: Symforium\Bundle\CoreBundle\Form\Settings\ApplicationForm
+    symforium.core_bundle.form.settings.database.class: Symforium\Bundle\CoreBundle\Form\Settings\DatabaseForm
+    symforium.core_bundle.form.settings.admin_user.class: Symforium\Bundle\CoreBundle\Form\Settings\AdminUserForm
+
+services:
+    symforium.core_bundle.form.abstract:
+        class: %symforium.core_bundle.form.abstract.class%
+        abstract: true
+        arguments:
+            - @translator.default
+
+    symforium.core_bundle.form.settings.application:
+        class: %symforium.core_bundle.form.settings.application.class%
+        parent: symforium.core_bundle.form.abstract
+        tags:
+            - { name: form.type, alias: settings_application }
+
+    symforium.core_bundle.form.settings.database:
+        class: %symforium.core_bundle.form.settings.database.class%
+        parent: symforium.core_bundle.form.abstract
+        tags:
+            - { name: form.type, alias: settings_database }
+
+    symforium.core_bundle.form.settings.admin_user:
+        class: %symforium.core_bundle.form.settings.admin_user.class%
+        parent: symforium.core_bundle.form.abstract
+        tags:
+            - { name: form.type, alias: settings_admin_user }

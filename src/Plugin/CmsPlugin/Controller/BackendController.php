@@ -21,8 +21,6 @@ use Symforium\Plugin\CmsPlugin\Entity\Page;
 
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
- *
- * @Config\Route("/manage/cms")
  */
 class BackendController extends Controller
 {

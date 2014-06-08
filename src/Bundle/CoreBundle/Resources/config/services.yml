@@ -1,4 +1,12 @@
+imports:
+    - { resource: forms.yml }
+    - { resource: twig.yml }
+
 services:
+    symforium.core_bundle.configuration_helper:
+        class: Symforium\Bundle\CoreBundle\Service\ConfigurationHelper
+        arguments: [@service_container]
+
     symforium.core_bundle.loader.plugin_route_loader:
         class: Symforium\Bundle\CoreBundle\Loader\PluginRouteLoader
         arguments:

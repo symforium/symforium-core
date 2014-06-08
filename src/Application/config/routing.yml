@@ -1,7 +1,7 @@
 symforium_core:
     resource: "@SymforiumCoreBundle/Controller/"
     type:     annotation
-    prefix:   /
+    prefix:   /manage
 
 symforium_plugins:
     resource: .

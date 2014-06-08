@@ -1,0 +1,5 @@
+{% spaceless %}
+    {% if field.vars['description'] is defined %}
+        <p class="description">{{ field.vars['description'] }}</p>
+    {% endif %}
+{% endspaceless %}

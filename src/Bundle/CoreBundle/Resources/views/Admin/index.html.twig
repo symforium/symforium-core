@@ -1,5 +1,16 @@
+{% trans_default_domain "symforium" %}
 {% extends 'SymforiumCoreBundle:Layout:admin.html.twig' %}
 
+{% set cms_link = path('symforium_plugin_cmsplugin_backend_view') %}
+{% set settings_link = path('symforium_core_settings_application') %}
+{% set links = {'%cms_link%': cms_link, '%settings_link%': settings_link} %}
+
 {% block content %}
-    Admin Panel!
+    <div class="container">
+        <div class="row top30 jumbotron">
+            <h1>{{ 'symforium.admin.header'|trans }}</h1>
+            <p>{{ 'symforium.admin.content.1'|trans }}</p>
+            <p>{{ 'symforium.admin.content.2'|trans(links)|markdown }}</p>
+        </div>
+    </div>
 {% endblock %}

@@ -88,10 +88,10 @@ class Builder extends ContainerAware
         $settings = $menu->addChild('Settings', ['uri' => '#'])
             ->setAttribute('icon', 'gears');
 
-        $settings->addChild('Application', ['uri' => '#'])
+        $settings->addChild('Application', ['route' => 'symforium_core_settings_application'])
             ->setAttribute('icon', 'sliders');
 
-        $settings->addChild('Database', ['uri' => '#'])
+        $settings->addChild('Database', ['route' => 'symforium_core_settings_database'])
             ->setAttribute('icon', 'database');
 
         $settings->addChild('Menu', ['uri' => '#'])

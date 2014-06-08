@@ -1,0 +1,8 @@
+parameters:
+    symforium.core_bundle.twig.description.class: Symforium\Bundle\CoreBundle\Twig\DescriptionExtension
+
+services:
+    symforium.core_bundle.twig.description:
+            class: %symforium.core_bundle.twig.description.class%
+            tags:
+                - { name: twig.extension }

@@ -9,28 +9,28 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Bundle\InstallerBundle\Form\Installer;
+namespace Symforium\Bundle\CoreBundle\Form\Settings;
 
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 use Symfony\Component\Validator\Constraints;
-use Symforium\Bundle\InstallerBundle\Form\AbstractInstallerForm;
+use Symforium\Bundle\CoreBundle\Form\AbstractForm;
 
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
  */
-class StepThreeForm extends AbstractInstallerForm
+class AdminUserForm extends AbstractForm
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
             ->add(
-                'adminUsername',
+                'admin_username',
                 'text',
                 [
-                    'label'       => $this->trans('step_three.admin_username.label'),
+                    'label'       => $this->trans('admin_user.admin_username.label'),
                     'attr'        => [
-                        'value' => $this->trans('step_three.admin_username.value'),
+                        'value' => $this->trans('admin_user.admin_username.value'),
                         'class' => 'form-control'
                     ],
                     'constraints' => [
@@ -40,12 +40,12 @@ class StepThreeForm extends AbstractInstallerForm
                 ]
             )
             ->add(
-                'adminEmail',
+                'admin_email',
                 'email',
                 [
-                    'label'       => $this->trans('step_three.admin_email.label'),
+                    'label'       => $this->trans('admin_user.admin_email.label'),
                     'attr'        => [
-                        'placeholder' => $this->trans('step_three.admin_email.placeholder'),
+                        'placeholder' => $this->trans('admin_user.admin_email.placeholder'),
                         'class'       => 'form-control'
                     ],
                     'constraints' => [
@@ -55,15 +55,15 @@ class StepThreeForm extends AbstractInstallerForm
                 ]
             )
             ->add(
-                'adminPassword',
+                'admin_password',
                 'repeated',
                 [
                     'type'            => 'password',
                     'invalid_message' => 'The password fields must match.',
                     'options'         => ['attr' => ['class' => 'form-control']],
                     'required'        => true,
-                    'first_options'   => ['label' => $this->trans('step_three.admin_password.label'),],
-                    'second_options'  => ['label' => $this->trans('step_three.admin_password_repeat.label'),],
+                    'first_options'   => ['label' => $this->trans('admin_user.admin_password.label'),],
+                    'second_options'  => ['label' => $this->trans('admin_user.admin_password_repeat.label'),],
                     'constraints'     => [
                         new Constraints\NotBlank(),
                         new Constraints\Length(['min' => 7])
@@ -87,7 +87,7 @@ class StepThreeForm extends AbstractInstallerForm
      */
     public function getName()
     {
-        return 'installer_step_three';
+        return 'settings_admin_user';
     }
 
     /**

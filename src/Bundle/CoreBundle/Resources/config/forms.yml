@@ -1,0 +1,11 @@
+imports:
+    - { resource: forms/settings.yml }
+
+parameters:
+    symforium.core_bundle.form.extension.description.class: Symforium\Bundle\CoreBundle\Form\Extension\DescriptionExtension
+
+services:
+    symforium.core_bundle.form.extension.description:
+            class: %symforium.core_bundle.form.extension.description.class%
+            tags:
+                - { name: form.type_extension, alias: form }

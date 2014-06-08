@@ -9,30 +9,49 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Bundle\InstallerBundle\Form\Installer;
+namespace Symforium\Bundle\CoreBundle\Form\Settings;
 
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 use Symfony\Component\Validator\Constraints;
-use Symforium\Bundle\InstallerBundle\Form\AbstractInstallerForm;
+use Symforium\Bundle\CoreBundle\Form\AbstractForm;
 
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
  */
-class StepTwoForm extends AbstractInstallerForm
+class DatabaseForm extends AbstractForm
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
             ->add(
-                'mysqlHost',
+                'database_type',
+                'choice',
+                [
+                    'label'       => $this->trans('database.database_type.label'),
+                    'choices'     => [
+                        'pdo_mysql' => $this->trans('database.database_type.choices.pdo_mysql'),
+                        'pdo_sqlite' => $this->trans('database.database_type.choices.pdo_sqlite'),
+                        'pdo_pgsql' => $this->trans('database.database_type.choices.pdo_pgsql')
+                    ],
+                    'description' => $this->trans('database.database_type.description'),
+                    'required'    => true,
+                    'empty_value' => 'Pick a Database Type',
+                    'attr'        => [
+                        'class' => 'form-control'
+                    ]
+                ]
+            )
+            ->add(
+                'database_host',
                 'text',
                 [
-                    'label'       => $this->trans('step_two.mysql_host.label'),
+                    'label'       => $this->trans('database.database_host.label'),
                     'attr'        => [
                         'value' => '127.0.0.1',
                         'class' => 'form-control'
                     ],
+                    'description' => $this->trans('database.database_host.description'),
                     'constraints' => [
                         new Constraints\NotBlank(),
                         new Constraints\Length(['min' => 3])
@@ -40,28 +59,30 @@ class StepTwoForm extends AbstractInstallerForm
                 ]
             )
             ->add(
-                'mysqlDatabase',
+                'database_name',
                 'text',
                 [
-                    'label'       => $this->trans('step_two.mysql_database.label'),
+                    'label'       => $this->trans('database.database_name.label'),
                     'attr'        => [
-                        'placeholder' => $this->trans('step_two.mysql_database.placeholder'),
+                        'placeholder' => $this->trans('database.database_name.placeholder'),
                         'class' => 'form-control'
                     ],
+                    'description' => $this->trans('database.database_name.description'),
                     'constraints' => [
                         new Constraints\NotBlank()
                     ]
                 ]
             )
             ->add(
-                'mysqlUser',
+                'database_user',
                 'text',
                 [
-                    'label'       => $this->trans('step_two.mysql_user.label'),
+                    'label'       => $this->trans('database.database_user.label'),
                     'attr'        => [
-                        'placeholder' => $this->trans('step_two.mysql_user.placeholder'),
+                        'placeholder' => $this->trans('database.database_user.placeholder'),
                         'class'       => 'form-control'
                     ],
+                    'description' => $this->trans('database.database_user.description'),
                     'constraints' => [
                         new Constraints\NotBlank(),
                         new Constraints\Length(['min' => 3])
@@ -69,13 +90,14 @@ class StepTwoForm extends AbstractInstallerForm
                 ]
             )
             ->add(
-                'mysqlPassword',
+                'database_password',
                 'password',
                 [
-                    'label'       => $this->trans('step_two.mysql_password.label'),
+                    'label'       => $this->trans('database.database_password.label'),
                     'attr'        => [
                         'class' => 'form-control'
                     ],
+                    'description' => $this->trans('database.database_password.description'),
                     'constraints' => [
                         new Constraints\NotBlank(),
                         new Constraints\Length(['min' => 3])
@@ -86,7 +108,7 @@ class StepTwoForm extends AbstractInstallerForm
                 'submit',
                 'submit',
                 [
-                    'label' => $this->trans('step.next'),
+                    'label' => $this->trans($options['button_text']),
                     'attr'  => [
                         'class' => 'btn btn-success'
                     ]
@@ -99,7 +121,7 @@ class StepTwoForm extends AbstractInstallerForm
      */
     public function getName()
     {
-        return 'installer_step_two';
+        return 'settings_database';
     }
 
     /**
@@ -109,6 +131,7 @@ class StepTwoForm extends AbstractInstallerForm
     {
         $resolver->setDefaults(
             [
+                'button_text' => 'submit.step.next',
                 'csrf_protection' => false
             ]
         );

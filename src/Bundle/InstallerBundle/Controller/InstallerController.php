@@ -32,7 +32,7 @@ class InstallerController extends Controller
             return $this->forward('SymforiumInstallerBundle:Installer:error');
         }
 
-        $form = $this->createForm('installer_step_one', $request->query->get('installer_step_one'));
+        $form = $this->createForm('settings_step_one', $request->query->get('settings_step_one'));
 
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
@@ -59,7 +59,7 @@ class InstallerController extends Controller
             return $this->forward('SymforiumInstallerBundle:Installer:error');
         }
 
-        $form = $this->createForm('installer_step_two', $request->query->get('installer_step_two'));
+        $form = $this->createForm('settings_step_two', $request->query->get('settings_step_two'));
 
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
@@ -67,7 +67,7 @@ class InstallerController extends Controller
                 $data = $form->getData();
                 $this->saveParameters($data);
 
-                return $this->redirect($this->generateUrl('symforium_installer_step_three'));
+                return $this->redirect($this->generateUrl('symforium_settings_step_three'));
             } else {
                 $errors = $form->getErrors(true);
             }
@@ -86,7 +86,7 @@ class InstallerController extends Controller
             return $this->forward('SymforiumInstallerBundle:Installer:error');
         }
 
-        $form = $this->createForm('installer_step_three', $request->query->get('installer_step_three'));
+        $form = $this->createForm('settings_step_three', $request->query->get('settings_step_three'));
 
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
@@ -94,7 +94,7 @@ class InstallerController extends Controller
                 $data = $form->getData();
                 $this->createUser($data);
 
-                return $this->redirect($this->generateUrl('symforium_installer_step_four'));
+                return $this->redirect($this->generateUrl('symforium_settings_step_four'));
             } else {
                 $errors = $form->getErrors(true);
             }
@@ -124,39 +124,6 @@ class InstallerController extends Controller
     public function errorAction()
     {
         return ['file' => $this->container->getParameter('kernel.root_dir').'/config/parameters.yml'];
-    }
-
-    /**
-     * @param array $data
-     * @param bool  $finished
-     */
-    private function saveParameters(array $data = [], $finished = false)
-    {
-        $file       = $this->container->getParameter('kernel.root_dir').'/config/parameters.yml';
-        $parameters = file_exists($file) ? Yaml::parse($file)['parameters'] : [];
-
-        if (isset($data['forumName'])) {
-            $parameters['forum_name'] = $data['forumName'];
-        }
-        if (isset($data['mysqlHost'])) {
-            $mysqlHost                   = explode(':', $data['mysqlHost']);
-            $parameters['database_host'] = $mysqlHost[0];
-            $parameters['database_port'] = isset($mysqlHost[1]) ? $mysqlHost[1] : 3306;
-        }
-        if (isset($data['mysqlDatabase'])) {
-            $parameters['database_name'] = $data['mysqlDatabase'];
-        }
-        if (isset($data['mysqlUser'])) {
-            $parameters['database_user'] = $data['mysqlUser'];
-        }
-        if (isset($data['mysqlPassword'])) {
-            $parameters['database_password'] = $data['mysqlPassword'];
-        }
-        if ($finished) {
-            $parameters['installed'] = true;
-        }
-
-        file_put_contents($file, Yaml::dump(['parameters' => $parameters], 4, 8));
     }
 
     /**

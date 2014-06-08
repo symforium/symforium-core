@@ -1,5 +1,71 @@
 symforium:
     admin:
+        header: Admin Panel!
         title: - Admin Panel
+        content:
+            1: Welcome to the administration panel! Take a look around.
+            2: |
+                Right now, only the [Content Management System][0], and [Settings][1] work.
+
+                [0]: %cms_link%
+                [1]: %settings_link%
     title: >
         <span id="logo-sym">Sym</span><span id="logo-for">for</span><span id="logo-i">i</span><span id="logo-um">um</span>
+    form:
+        application:
+            description: |
+                You will want a name for your forum. Make sure it's a good one!
+            site_name:
+                label: 'Site Name'
+                placeholder: 'Symforium'
+                description: This is the title of the Site.
+        database:
+            description: |
+                Symforium will need access to a mysql database in order to store all your forum's data in,
+                such as conversations and posts.  If you don't know these values, please contact your administrator.
+            database_type:
+                label: Database Type
+                description: Database Type to use, these will all use PDO
+                choices:
+                    pdo_mysql: Mysql
+                    pdo_sqlite: Sqlite
+                    pdo_pgsql: Postgres
+            database_host:
+                label: Database Hostname
+                description: Hostname of your database
+            database_name:
+                label: Database Name
+                placeholder: symforium
+                description: Name of your database
+            database_user:
+                label: Database Username
+                placeholder: symforium
+                description: Username to use to connect to your database
+            database_password:
+                label: Database Password
+                description: Password to use to connect to your database
+        admin_user:
+            description: |
+                Symforium will need some information to set up an administrator account.
+                Fill in the following fields to create it.
+            admin_username:
+                label: Username
+                value: admin
+            admin_email:
+                label: E-Mail
+                placeholder: john@doe.com
+            admin_password:
+                label: Password
+            admin_password_repeat:
+                label: Repeat your Password
+        submit:
+            step:
+                next: Next Step!
+                final: Install Symfonium!
+            save: Save These Settings!
+        title: Symforium Installer
+        support: |
+            If you have any issues, check out the #symforium channel in Freenode
+        welcome: >
+            <p>Welcome to the Symforium Installer! Follow the instructions on the following pages to set up your new forum.</p>
+            <p>Click the following button to get started!</p>

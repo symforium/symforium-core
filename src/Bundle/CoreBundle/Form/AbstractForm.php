@@ -9,7 +9,7 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Bundle\InstallerBundle\Form;
+namespace Symforium\Bundle\CoreBundle\Form;
 
 use Symfony\Bundle\FrameworkBundle\Translation\Translator;
 use Symfony\Component\Form\AbstractType;
@@ -17,7 +17,7 @@ use Symfony\Component\Form\AbstractType;
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
  */
-abstract class AbstractInstallerForm extends AbstractType
+abstract class AbstractForm extends AbstractType
 {
     /**
      * @var Translator $translator
@@ -40,7 +40,7 @@ abstract class AbstractInstallerForm extends AbstractType
     protected function trans($id, $params = [], $domain = 'symforium', $locale = 'en')
     {
         if ($domain === 'symforium') {
-            $id = 'symforium.installer.'.$id;
+            $id = 'symforium.form.'.$id;
         }
 
         return $this->translator->trans($id, $params, $domain, $locale);

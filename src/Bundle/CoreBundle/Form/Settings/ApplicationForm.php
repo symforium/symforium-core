@@ -9,30 +9,31 @@
  * with this source code in the file LICENSE
  */
 
-namespace Symforium\Bundle\InstallerBundle\Form\Installer;
+namespace Symforium\Bundle\CoreBundle\Form\Settings;
 
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 use Symfony\Component\Validator\Constraints;
-use Symforium\Bundle\InstallerBundle\Form\AbstractInstallerForm;
+use Symforium\Bundle\CoreBundle\Form\AbstractForm;
 
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
  */
-class StepOneForm extends AbstractInstallerForm
+class ApplicationForm extends AbstractForm
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
             ->add(
-                'forumName',
+                'site_name',
                 'text',
                 [
-                    'label'       => $this->trans('step_one.forum_name.label'),
+                    'label'       => $this->trans('application.site_name.label'),
                     'attr'        => [
-                        'placeholder' => $this->trans('step_one.forum_name.placeholder'),
+                        'placeholder' => $this->trans('application.site_name.placeholder'),
                         'class'       => 'form-control'
                     ],
+                    'description' => $this->trans('application.site_name.description'),
                     'constraints' => [
                         new Constraints\NotBlank(),
                         new Constraints\Length(['min' => 3])
@@ -43,7 +44,7 @@ class StepOneForm extends AbstractInstallerForm
                 'submit',
                 'submit',
                 [
-                    'label' => $this->trans('step.next'),
+                    'label' => $this->trans($options['button_text']),
                     'attr'  => [
                         'class' => 'btn btn-success'
                     ]
@@ -56,7 +57,7 @@ class StepOneForm extends AbstractInstallerForm
      */
     public function getName()
     {
-        return 'installer_step_one';
+        return 'settings_application';
     }
 
     /**
@@ -66,6 +67,7 @@ class StepOneForm extends AbstractInstallerForm
     {
         $resolver->setDefaults(
             [
+                'button_text' => 'submit.step.next',
                 'csrf_protection' => false
             ]
         );

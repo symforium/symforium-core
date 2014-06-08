@@ -1,4 +1,4 @@
-symforium_cms:
-    resource: "@SymforiumCmsPlugin/Controller/"
+symforium_cms_backend:
+    resource: "@SymforiumCmsPlugin/Controller/BackendController.php"
     type:     annotation
-    prefix:   /
+    prefix:   /manage/cms

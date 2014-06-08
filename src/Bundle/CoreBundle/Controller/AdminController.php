@@ -16,7 +16,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration as Sensio;
 
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
- * @Sensio\Route("/manage")
  */
 class AdminController extends Controller
 {
@@ -28,6 +27,9 @@ class AdminController extends Controller
      */
     public function indexAction()
     {
+        $breadcrumbs = $this->get("white_october_breadcrumbs");
+        $breadcrumbs->addItem("Backend", $this->generateUrl("symforium_core_admin_index"));
+
         return ['title' => 'Dashboard'];
     }
 }

@@ -1,10 +1,23 @@
 html,
-body {
+body,
+#wrapper {
   background: #ecf0f1;
+}
+.alert.flash-notice {
+  margin-bottom: 0;
+}
+.fixed-bottom {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  border-radius: 0;
 }
 #wrapper {
   height: 200px;
   padding: 0;
+}
+#wrapper .fixed-bottom {
+  width: 83.333333333334%;
 }
 .breadcrumb {
   margin-bottom: 0;
@@ -254,4 +267,50 @@ nav#sidebar > ul ul li a i {
   font-size: 14px !important;
   width: 18px !important;
   text-align: center !important;
+}
+.settings {
+  padding: 15px 0;
+  margin-bottom: 70px;
+}
+.settings form .row,
+.settings form .row > div {
+  min-height: 100px;
+}
+.settings form .row:first-of-type {
+  border-top: 1px solid rgba(149, 165, 166, 0.2);
+}
+.settings form .row:last-of-type {
+  border-bottom: 1px solid rgba(149, 165, 166, 0.2);
+}
+.settings form .row > div {
+  padding: 20px;
+}
+.settings form .row > div:first-of-type {
+  border-right: 1px solid rgba(149, 165, 166, 0.2);
+}
+.settings form .row > div:last-of-type p {
+  font-size: 110%;
+}
+.settings form label {
+  font-size: 130%;
+  font-weight: bold;
+  margin: 0;
+  line-height: 1.4;
+}
+.settings form button[type=submit] {
+  height: 85px;
+}
+.settings .page-header {
+  margin-top: 30px;
+  padding: 0 15px;
+}
+.settings .page-header h3 {
+  color: #34495e;
+}
+.settings .page-header h3 > small {
+  font-size: 60%;
+  border-bottom: 1px dotted #34495e;
+  margin-left: 5px;
+  font-style: italic;
+  color: #34495e;
 }
