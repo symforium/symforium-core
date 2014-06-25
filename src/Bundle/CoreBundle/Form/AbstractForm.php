@@ -42,8 +42,9 @@ abstract class AbstractForm extends AbstractType
         if ($domain === 'symforium') {
             $id = 'symforium.form.'.$id;
         }
+        $translation = $this->translator->trans($id, $params, $domain, $locale);
 
-        return $this->translator->trans($id, $params, $domain, $locale);
+        return $translation;
     }
 }
  

@@ -30,6 +30,9 @@ body {
 *:focus {
   outline: 0;
 }
+#content {
+  padding-top: 35px;
+}
 #navigation {
   border-width: 0;
   border-radius: 0;
@@ -90,6 +93,7 @@ body {
 #navigation .navbar-header .navbar-brand span#logo-i {
   color: #3498db;
   font-style: italic;
+  margin: 0 2px 0 -1px;
 }
 #navigation .navbar-header .navbar-brand:hover span#logo-sym,
 #navigation .navbar-header .navbar-brand:hover span#logo-i {

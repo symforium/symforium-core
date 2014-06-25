@@ -6,21 +6,28 @@
     <div class="panel panel-info" id="installer">
         <div class="panel-body bg-info">
             <div class="section border-info">
-                <p class="description">{{ 'symforium.installer.sections.mysql.description'|trans|raw }}</p>
+                <p class="description">{{ 'symforium.installer.step_two.description'|trans|raw }}</p>
                 <div class="row">
                     <div class="col-xs-6 form-group">
-                        {{ form_row(form.mysqlHost) }}
+                        {{ form_row(form.database_type) }}
                     </div>
                     <div class="col-xs-6 form-group">
-                        {{ form_row(form.mysqlDatabase) }}
+                        {{ form_row(form.database_host) }}
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-xs-6 form-group">
-                        {{ form_row(form.mysqlUser) }}
+                        {{ form_row(form.database_name) }}
                     </div>
                     <div class="col-xs-6 form-group">
-                        {{ form_row(form.mysqlPassword) }}
+                        {{ form_row(form.database_user) }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6 form-group">
+                        {{ form_row(form.database_password) }}
+                    </div>
+                    <div class="col-xs-6">
                     </div>
                 </div>
                 <div class="row">

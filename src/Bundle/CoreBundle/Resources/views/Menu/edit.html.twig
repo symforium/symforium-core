@@ -1,0 +1,28 @@
+{% extends 'SymforiumCoreBundle:Layout:admin.html.twig' %}
+
+{% block content %}
+    <div class="settings">
+        <div class="page-header">
+            <h3>Editing Menu <small>{{ menuItem.display }}</small></h3>
+        </div>
+        <div class="container-fluid">
+            {{ form_start(form) }}
+            {{ form_errors(form) }}
+            {% for key, field in form.children if key != 'submit' %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form_label(field) }}
+                            {{ form_widget(field) }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_description(field) }}
+                    </div>
+                </div>
+            {% endfor %}
+            {{ form_widget(form.submit, {'attr': {'class': 'btn btn-primary btn-lg btn-block fixed-bottom'}}) }}
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

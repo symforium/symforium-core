@@ -11,6 +11,10 @@
     {{ parent() }}
 
     <style type="text/css">
+        #content {
+            padding-top: 50px;
+        }
+
         #support {
             padding: 15px 0;
         }
@@ -44,6 +48,7 @@
 {% endblock %}
 
 {% block javascripts %}
+    {{ parent() }}
     <script type="text/javascript">
         $(function () {
             $('.form-group').each(function () {

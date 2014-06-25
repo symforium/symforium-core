@@ -58,10 +58,23 @@ symforium:
                 label: Password
             admin_password_repeat:
                 label: Repeat your Password
+        menu:
+            display:
+                label: Display
+                placeholder: Menu Display
+                description: This is what is displayed in the menu
+            title:
+                label: Title
+                placeholder: Menu Title
+                description: This is what is displayed in the menu when you hover over the link
+            url:
+                label: Url
+                placeholder: Menu Url
+                description: This is what url the Menu Item goes to
         submit:
             step:
                 next: Next Step!
-                final: Install Symfonium!
+                final: Install Symforium!
             save: Save These Settings!
         title: Symforium Installer
         support: |
@@ -69,3 +82,27 @@ symforium:
         welcome: >
             <p>Welcome to the Symforium Installer! Follow the instructions on the following pages to set up your new forum.</p>
             <p>Click the following button to get started!</p>
+    installer:
+            step_one:
+                description: |
+                    You will want a name for your forum. Make sure it's a good one!
+                forum_name:
+                    label: 'Forum Name'
+                    placeholder: 'Symforium'
+            step_two:
+                description: |
+                    Symforium will need access to a mysql database in order to store all your forum's data in,
+                    such as conversations and posts.  If you don't know these values, please contact your administrator.
+            step_three:
+                description: |
+                    Symforium will need some information to set up an administrator account.
+                    Fill in the following fields to create it.
+            step:
+                next: Next Step!
+                final: Install Symfonium!
+            title: Symforium Installer
+            support: |
+                If you have any issues, check out the #symforium channel in Freenode
+            welcome: >
+                <p>Welcome to the Symforium Installer! Follow the instructions on the following pages to set up your new forum.</p>
+                <p>Click the following button to get started!</p>

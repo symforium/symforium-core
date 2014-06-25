@@ -2,28 +2,28 @@
 {% extends 'SymforiumInstallerBundle:Installer:installer.html.twig' %}
 
 {% block content %}
-    {{ form_start(form, {'attr': {'role': 'form', 'novalidate': 'true' }}) }}
+    {{ form_start(form, {'attr': {'role': 'form', 'novalidate': 'true', 'autocomplete': 'off' }}) }}
     <div class="panel panel-info" id="installer">
         <div class="panel-body bg-info">
             <div class="section border-info">
-                <p class="description">{{ 'symforium.installer.sections.user.description'|trans|raw }}</p>
+                <p class="description">{{ 'symforium.installer.step_three.description'|trans|raw }}</p>
 
                 <div class="row">
                     <div class="col-xs-5 form-group">
-                        {{ form_row(form.adminUsername) }}
+                        {{ form_row(form.admin_username) }}
                     </div>
                     <div class="col-xs-1"></div>
                     <div class="col-xs-5 form-group">
-                        {{ form_row(form.adminEmail) }}
+                        {{ form_row(form.admin_email) }}
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-xs-5 form-group">
-                        {{ form_row(form.adminPassword.first) }}
+                        {{ form_row(form.admin_password.first) }}
                     </div>
                     <div class="col-xs-1"></div>
                     <div class="col-xs-5 form-group">
-                        {{ form_row(form.adminPassword.second) }}
+                        {{ form_row(form.admin_password.second) }}
                     </div>
                 </div>
             </div>

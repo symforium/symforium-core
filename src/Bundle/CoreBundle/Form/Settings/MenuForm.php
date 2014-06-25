@@ -19,56 +19,56 @@ use Symforium\Bundle\CoreBundle\Form\AbstractForm;
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
  */
-class AdminUserForm extends AbstractForm
+class MenuForm extends AbstractForm
 {
+    /**
+     * {@inheritdoc}
+     */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
             ->add(
-                'admin_username',
+                'display',
                 'text',
                 [
-                    'label'       => $this->trans('admin_user.admin_username.label'),
+                    'label'       => $this->trans('menu.display.label'),
                     'attr'        => [
-                        'value' => $this->trans('admin_user.admin_username.value'),
-                        'class' => 'form-control',
-                        'autocomplete' => 'off'
+                        'placeholder' => $this->trans('menu.display.placeholder'),
+                        'class'       => 'form-control'
                     ],
+                    'description' => $this->trans('menu.display.description'),
                     'constraints' => [
-                        new Constraints\NotBlank(),
-                        new Constraints\Length(['min' => 3])
+                        new Constraints\NotBlank()
                     ]
                 ]
             )
             ->add(
-                'admin_email',
-                'email',
+                'title',
+                'text',
                 [
-                    'label'       => $this->trans('admin_user.admin_email.label'),
+                    'label'       => $this->trans('menu.title.label'),
                     'attr'        => [
-                        'placeholder' => $this->trans('admin_user.admin_email.placeholder'),
-                        'class'       => 'form-control',
-                        'autocomplete' => 'off'
+                        'placeholder' => $this->trans('menu.title.placeholder'),
+                        'class'       => 'form-control'
                     ],
+                    'description' => $this->trans('menu.title.description'),
                     'constraints' => [
-                        new Constraints\NotBlank(),
-                        new Constraints\Email()
+                        new Constraints\NotBlank()
                     ]
                 ]
             )
             ->add(
-                'admin_password',
-                'repeated',
+                'url',
+                'text',
                 [
-                    'type'            => 'password',
-                    'invalid_message' => 'The password fields must match.',
-                    'options'         => ['attr' => ['class' => 'form-control']],
-                    'required'        => true,
-                    'first_options'   => ['label' => $this->trans('admin_user.admin_password.label'),],
-                    'second_options'  => ['label' => $this->trans('admin_user.admin_password_repeat.label'),],
-                    'constraints'     => [
-                        new Constraints\NotBlank(),
-                        new Constraints\Length(['min' => 7])
+                    'label'       => $this->trans('menu.url.label'),
+                    'attr'        => [
+                        'placeholder' => $this->trans('menu.url.placeholder'),
+                        'class'       => 'form-control'
+                    ],
+                    'description' => $this->trans('menu.url.description'),
+                    'constraints' => [
+                        new Constraints\NotBlank()
                     ]
                 ]
             )
@@ -89,7 +89,7 @@ class AdminUserForm extends AbstractForm
      */
     public function getName()
     {
-        return 'settings_admin_user';
+        return 'settings_menu_item';
     }
 
     /**

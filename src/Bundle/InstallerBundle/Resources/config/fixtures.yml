@@ -1,0 +1,31 @@
+Symforium\Plugin\CmsPlugin\Entity\Page:
+    homePage:
+        title: Home
+        url: /
+        content: |
+            ### Welcome to Symforium!
+
+            *Symforium*, at its heart, is a highly extension forum platform, with a **CMS** included into the mix. *Symforium* uses **Markdown** for formatting on forum posts, pages, and messages.
+
+            Take a look around, check out the [feature][1] page and give it a try!
+
+            Heres the a preview of the CMS:
+
+            [<img src="/bundles/symforiumcmsplugin/images/cms_01.png" width="450px" />][2]
+
+            [1]: /features
+            [2]: /bundles/symforiumcmsplugin/images/cms_01.png
+        published: true
+        insertDate: <datetime()>
+        modifiedDate: <datetime()>
+        insertUser: 1
+        modifiedUser: 1
+Symforium\Bundle\CoreBundle\Entity\MenuItem:
+    homeMenu:
+        display: Home
+        title: Home Page
+        url: /
+        insertDate: <datetime()>
+        modifiedDate: <datetime()>
+        insertUser: 1
+        modifiedUser: 1

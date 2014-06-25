@@ -91,7 +91,7 @@ class DatabaseForm extends AbstractForm
             )
             ->add(
                 'database_password',
-                'password',
+                $options['password_type'],
                 [
                     'label'       => $this->trans('database.database_password.label'),
                     'attr'        => [
@@ -132,6 +132,7 @@ class DatabaseForm extends AbstractForm
         $resolver->setDefaults(
             [
                 'button_text' => 'submit.step.next',
+                'password_type' => 'password',
                 'csrf_protection' => false
             ]
         );

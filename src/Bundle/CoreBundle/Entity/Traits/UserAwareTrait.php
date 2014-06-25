@@ -12,6 +12,7 @@
 namespace Symforium\Bundle\CoreBundle\Entity\Traits;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symforium\Bundle\CoreBundle\Entity\User;
 
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
@@ -49,7 +50,7 @@ trait UserAwareTrait
      *
      * @return $this
      */
-    public function setInsertUser($insertUser)
+    public function setInsertUser(User $insertUser)
     {
         $this->insertUser = $insertUser;
 
@@ -69,7 +70,7 @@ trait UserAwareTrait
      *
      * @return $this
      */
-    public function setModifiedUser($modifiedUser)
+    public function setModifiedUser(User $modifiedUser)
     {
         $this->modifiedUser = $modifiedUser;
 

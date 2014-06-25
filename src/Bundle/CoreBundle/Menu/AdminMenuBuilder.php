@@ -21,7 +21,7 @@ use Symfony\Component\DependencyInjection\ContainerAware;
 /**
  * @author Aaron Scherer <aequasi@gmail.com>
  */
-class Builder extends ContainerAware
+class AdminMenuBuilder extends ContainerAware
 {
     /**
      * @var array|Plugin[] $plugins
@@ -49,7 +49,7 @@ class Builder extends ContainerAware
      * @throws \Exception
      * @return ItemInterface
      */
-    public function createAdminMenu(Request $request)
+    public function createMenu(Request $request)
     {
         $menu = $this->factory->createItem('root');
         $menu->setCurrentUri($request->getRequestUri());
@@ -94,7 +94,7 @@ class Builder extends ContainerAware
         $settings->addChild('Database', ['route' => 'symforium_core_settings_database'])
             ->setAttribute('icon', 'database');
 
-        $settings->addChild('Menu', ['uri' => '#'])
+        $settings->addChild('Menu', ['route' => 'symforium_core_settings_menu'])
             ->setAttribute('icon', 'bars');
     }
 }

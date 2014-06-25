@@ -13,7 +13,9 @@ namespace Symforium\Core;
 
 use Aequasi\Environment\Environment;
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle;
 use FOS\UserBundle\FOSUserBundle;
+use Hautelook\AliceBundle\HautelookAliceBundle;
 use Knp\Bundle\MarkdownBundle\KnpMarkdownBundle;
 use Knp\Bundle\MenuBundle\KnpMenuBundle;
 use Sensio\Bundle as SensioBundle;
@@ -87,6 +89,8 @@ abstract class Kernel extends SymfonyKernel
             new DoctrineBundle(),
             new WhiteOctoberBreadcrumbsBundle(),
             new KnpMarkdownBundle(),
+            new DoctrineFixturesBundle(),
+            new HautelookAliceBundle(),
             new FOSUserBundle(),
             new KnpMenuBundle(),
             new SymforiumBundle\CoreBundle\SymforiumCoreBundle(),

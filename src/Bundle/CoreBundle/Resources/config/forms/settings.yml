@@ -3,6 +3,7 @@ parameters:
     symforium.core_bundle.form.settings.application.class: Symforium\Bundle\CoreBundle\Form\Settings\ApplicationForm
     symforium.core_bundle.form.settings.database.class: Symforium\Bundle\CoreBundle\Form\Settings\DatabaseForm
     symforium.core_bundle.form.settings.admin_user.class: Symforium\Bundle\CoreBundle\Form\Settings\AdminUserForm
+    symforium.core_bundle.form.settings.menu.class: Symforium\Bundle\CoreBundle\Form\Settings\MenuForm
 
 services:
     symforium.core_bundle.form.abstract:
@@ -28,3 +29,9 @@ services:
         parent: symforium.core_bundle.form.abstract
         tags:
             - { name: form.type, alias: settings_admin_user }
+
+    symforium.core_bundle.form.settings.menu:
+        class: %symforium.core_bundle.form.settings.menu.class%
+        parent: symforium.core_bundle.form.abstract
+        tags:
+            - { name: form.type, alias: settings_menu_item }

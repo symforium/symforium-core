@@ -23,6 +23,22 @@ class InstallerController extends Controller
     }
 
     /**
+     * @param Request $request
+     * @param         $name
+     *
+     * @return \Symfony\Component\Form\Form
+     */
+    private function buildForm(Request $request, $name, array $options = [])
+    {
+        $configuration = $this->get('symforium.core_bundle.configuration_helper');
+
+        $name = 'settings_'.$name;
+        $data = array_merge($request->query->get($name, []), $configuration->getParameters());
+
+        return $this->createForm($name, $data, $options);
+    }
+
+    /**
      * @Config\Route("/step/1", name="symforium_installer_step_one")
      * @Config\Template()
      */
@@ -32,13 +48,14 @@ class InstallerController extends Controller
             return $this->forward('SymforiumInstallerBundle:Installer:error');
         }
 
-        $form = $this->createForm('settings_step_one', $request->query->get('settings_step_one'));
-
+        $form = $this->buildForm($request, 'application');
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
             if ($form->isValid()) {
+                $configuration = $this->get('symforium.core_bundle.configuration_helper');
+
                 $data = $form->getData();
-                $this->saveParameters($data);
+                $configuration->saveParameters($data);
 
                 return $this->redirect($this->generateUrl('symforium_installer_step_two'));
             } else {
@@ -59,15 +76,16 @@ class InstallerController extends Controller
             return $this->forward('SymforiumInstallerBundle:Installer:error');
         }
 
-        $form = $this->createForm('settings_step_two', $request->query->get('settings_step_two'));
-
+        $form = $this->buildForm($request, 'database', ['password_type' => 'text']);
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
             if ($form->isValid()) {
-                $data = $form->getData();
-                $this->saveParameters($data);
+                $configuration = $this->get('symforium.core_bundle.configuration_helper');
 
-                return $this->redirect($this->generateUrl('symforium_settings_step_three'));
+                $data = $form->getData();
+                $configuration->saveParameters($data);
+
+                return $this->redirect($this->generateUrl('symforium_installer_step_three'));
             } else {
                 $errors = $form->getErrors(true);
             }
@@ -86,15 +104,14 @@ class InstallerController extends Controller
             return $this->forward('SymforiumInstallerBundle:Installer:error');
         }
 
-        $form = $this->createForm('settings_step_three', $request->query->get('settings_step_three'));
-
+        $form = $this->buildForm($request, 'admin_user', ['button_text' => 'submit.step.final']);
         if ($request->isMethod('POST')) {
             $form->handleRequest($request);
             if ($form->isValid()) {
                 $data = $form->getData();
                 $this->createUser($data);
 
-                return $this->redirect($this->generateUrl('symforium_settings_step_four'));
+                return $this->redirect($this->generateUrl('symforium_installer_step_four'));
             } else {
                 $errors = $form->getErrors(true);
             }
@@ -113,7 +130,8 @@ class InstallerController extends Controller
             return $this->forward('SymforiumInstallerBundle:Installer:error');
         }
 
-        $this->saveParameters([], true);
+        $configuration = $this->get('symforium.core_bundle.configuration_helper');
+        $configuration->saveParameters([], true);
 
         return ['url' => $this->generateUrl('symforium_core_admin_index')];
     }
@@ -134,16 +152,16 @@ class InstallerController extends Controller
         /** @var \FOS\UserBundle\Doctrine\UserManager $manager */
         $manager = $this->get('fos_user.user_manager');
 
-        if (!($user = $manager->findUserByUsername($data['adminUsername']))) {
+        if (!($user = $manager->findUserByUsername($data['admin_username']))) {
             $user = $manager->createUser();
         }
 
-        $user->setEmail($data['adminEmail'])
+        $user->setEmail($data['admin_umail'])
             ->setEnabled(1)
-            ->setPlainPassword($data['adminPassword'])
+            ->setPlainPassword($data['admin_password'])
             ->setRoles(['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_USER'])
             ->setSuperAdmin(1)
-            ->setUsername($data['adminUsername']);
+            ->setUsername($data['admin_username']);
 
         $manager->updateUser($user);
     }

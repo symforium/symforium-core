@@ -45,6 +45,9 @@ class ConfigurationHelper
         $this->container = $container;
     }
 
+    /**
+     * @return array
+     */
     public function getParameters()
     {
         $parameters = [];

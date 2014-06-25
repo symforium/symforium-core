@@ -4,11 +4,7 @@
 {% extends 'SymforiumCoreBundle:Layout:layout.html.twig' %}
 
 {% block menu %}
-    <ul class="nav navbar-nav">
-        <li><a href="/">Home</a></li>
-        <li><a href="#">Static 1</a></li>
-        <li><a href="#">Static 2</a></li>
-    </ul>
+    {{ knp_menu_render('main', {'currentClass': 'active'}) }}
     <ul class="nav navbar-nav navbar-right">
         {% if is_granted('ROLE_USER') %}
             {% if is_granted('ROLE_ADMIN') %}

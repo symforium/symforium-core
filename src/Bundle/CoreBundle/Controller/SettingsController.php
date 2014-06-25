@@ -39,6 +39,7 @@ class SettingsController extends Controller
 
         return array_merge(['title' => 'Application Settings'], $formData);
     }
+
     /**
      * @param Request $request
      *
@@ -51,14 +52,34 @@ class SettingsController extends Controller
     {
         $breadcrumbs = $this->get("white_october_breadcrumbs");
         $breadcrumbs->addItem("Backend", $this->generateUrl("symforium_core_admin_index"));
-        $breadcrumbs->addItem("Application Settings", $this->generateUrl("symforium_core_settings_application"));
+        $breadcrumbs->addItem("Database Settings", $this->generateUrl("symforium_core_settings_database"));
 
         $formData = $this->buildForm($request, 'settings_database');
 
         return array_merge(['title' => 'Database Settings'], $formData);
     }
 
-    private function buildForm(Request $request, $type)
+    /**
+     * @param Request $request
+     *
+     * @return array
+     *
+     * @Sensio\Route("/menu")
+     * @Sensio\Template()
+     */
+    public function menuAction(Request $request)
+    {
+        $breadcrumbs = $this->get("white_october_breadcrumbs");
+        $breadcrumbs->addItem("Backend", $this->generateUrl("symforium_core_admin_index"));
+        $breadcrumbs->addItem("Menu Settings", $this->generateUrl("symforium_core_settings_menu"));
+
+        $repo = $this->getDoctrine()->getRepository('SymforiumCoreBundle:MenuItem');
+
+
+        return ['title' => 'Menu Settings', 'menu_items' => $repo->findAll()];
+    }
+
+    protected function buildForm(Request $request, $type)
     {
         $configuration = $this->get('symforium.core_bundle.configuration_helper');
 
